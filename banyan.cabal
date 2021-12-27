@@ -43,6 +43,7 @@ executable banyan
     , text
     , time
     , unliftio
+    , uuid
 
   mixins:
     base hiding (Prelude),
