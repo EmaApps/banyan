@@ -2,7 +2,7 @@
   description = "Ema documentation source";
   inputs = {
     ema.url = "github:srid/ema/master";
-    emanote.url = "github:srid/emanote/srid/lib";
+    emanote.url = "github:srid/emanote/master";
     # Use the nixpkgs used by the pinned ema.
     nixpkgs.follows = "ema/nixpkgs";
 

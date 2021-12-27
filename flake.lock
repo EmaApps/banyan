@@ -60,16 +60,16 @@
         "windicss": "windicss"
       },
       "locked": {
-        "lastModified": 1640638990,
+        "lastModified": 1640640076,
         "narHash": "sha256-B3HH2q3TfZl3H6f/rj2cptUFndpylV3LKj5x50xID60=",
         "owner": "srid",
         "repo": "emanote",
-        "rev": "4a2f60167a8c33a4f5c8c933f3a3cc7f78610547",
+        "rev": "e719284a4822b7fe0210e3c06927382b3c7c0ff7",
         "type": "github"
       },
       "original": {
         "owner": "srid",
-        "ref": "srid/lib",
+        "ref": "master",
         "repo": "emanote",
         "type": "github"
       }
