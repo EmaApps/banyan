@@ -1,10 +1,11 @@
 name: "Publish site"
 on:
   # Run only when pushing to master branch
-  push:
-    branches:
+  #push:
+  #  branches:
+  #  - master
 jobs:
-  docs:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
