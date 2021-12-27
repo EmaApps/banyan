@@ -31,6 +31,7 @@ executable banyan
     , data-default
     , directory
     , ema                 >=0.3
+    , emanote
     , filepath
     , lvar
     , monad-logger
@@ -42,7 +43,6 @@ executable banyan
     , text
     , time
     , unliftio
-    , emanote
 
   mixins:
     base hiding (Prelude),
