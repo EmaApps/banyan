@@ -2,6 +2,7 @@
   description = "Ema documentation source";
   inputs = {
     ema.url = "github:srid/ema/master";
+    emanote.url = "github:srid/emanote/srid/lib";
     # Use the nixpkgs used by the pinned ema.
     nixpkgs.follows = "ema/nixpkgs";
 
@@ -53,7 +54,7 @@
             withHoogle = false;
             overrides = self: super: with pkgs.haskell.lib; {
               ema = disableCabalFlag inputs.ema.defaultPackage.${system} "with-examples";
-              # lvar = self.callCabal2nix "lvar" inputs.ema.inputs.lvar { }; # Until lvar gets into nixpkgs
+              emanote = inputs.emanote.defaultPackage.${system};
             };
             modifier = drv:
               pkgs.haskell.lib.addBuildTools drv
