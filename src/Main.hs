@@ -123,7 +123,7 @@ patchModel ftype fp action = do
             s <- liftIO $ readFileText absPath
             case traceShowId (G.parseDot s) of
               Left e ->
-                -- TODO: this doesn't show error. FIXME>
+                -- FIXME: this doesn't show error (at least on macOS M1)
                 throw $ BadGraph e
               Right g ->
                 pure $ modelSetGraph g

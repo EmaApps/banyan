@@ -2,7 +2,7 @@
 
 WIP: Tree of time. 
 
-Like [Wind of Change](https://windofchange.me), but using the tree model, and as a static site -- so there is no social aspect, for which you should still use WOC. I probably will begin using banyan primarily, and then cross-post its content to WOC for enabling discussions.
+Like [Wind of change](https://windofchange.me), but using the tree model, and as a static site -- so there is no social aspect, for which you should still use WOC. I probably will begin using banyan primarily, and then cross-post its content to WOC for enabling discussions.
 
 Fun facts:
 
@@ -14,19 +14,9 @@ Design:
 - Child nodes indicate posts made *over time* (hence tree-of-time) under its parent. 
 - Each node is identified by an unique ID, that appears in the URL. We use [Nano ID](https://github.com/ai/nanoid) in place of UUID. It is short and sufficient.
 - "Next ID" is displayed in all pages, to make it easy to create new files quickly elsewhere. We could improve the workflow further here.
-
-File-format brainstorming:
-
-- `.md` files for nodes
-- How to represent relationships? Candidates:
-  1. Filesystem hierarchy
-    - Too complex to deal with
-  1. YAML metadata `parent` in each ${node}.md
-    - Organizing nodes en masses involves fiddling with multiple files
-  1. Separate file, eg: [DOT](https://www.graphviz.org/doc/info/lang.html), for graphs
-    - Automatically allows multi-parent nodes
-      - Visually, we present one parent, while demoting others.
-    - Organizing nodes en masse is easier 
+- File-format 
+  - `.md` files for nodes
+  - Tree relationships are defined in `graph.dot` file[^relbrain].
 
 Todo:
 
@@ -46,3 +36,15 @@ Right now,
 ```
 bin/run
 ```
+
+[^relbrain]: File-format brainstorming:
+    - How to represent relationships? Candidates:
+      1. Filesystem hierarchy
+        - Too complex to deal with
+      1. YAML metadata `parent` in each ${node}.md
+        - Organizing nodes en masses involves fiddling with multiple files
+      1. Separate file, eg: [DOT](https://www.graphviz.org/doc/info/lang.html), for graphs
+        - Automatically allows multi-parent nodes
+          - Visually, we present one parent, while demoting others.
+        - Organizing nodes en masse is easier 
+
