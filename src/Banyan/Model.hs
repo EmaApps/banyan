@@ -1,15 +1,9 @@
 module Banyan.Model where
 
 import qualified Algebra.Graph.AdjacencyMap as AM
+import Banyan.ID (NodeID, randomId)
 import Banyan.Markdown (Meta, Pandoc)
 import qualified Data.Map.Strict as Map
-import Data.NanoID (NanoID (NanoID))
-import qualified Data.NanoID as NanoID
-import qualified Data.Text as T
-import System.FilePath (splitExtension)
-import System.Random.MWC (createSystemRandom)
-
-type NodeID = NanoID
 
 type Node = (Maybe Meta, Pandoc)
 
@@ -37,16 +31,5 @@ modelResetNextUUID = do
       then error $ "NanoID collision: " <> show rid
       else Model m g rid
 
-randomId :: IO NanoID
-randomId = do
-  createSystemRandom >>= NanoID.customNanoID NanoID.alphanumeric 13
-
 modelSetGraph :: AM.AdjacencyMap NodeID -> Model -> Model
 modelSetGraph g (Model m _ n) = Model m g n
-
-parseUUIDFileName :: String -> FilePath -> Maybe NodeID
-parseUUIDFileName ext fp = do
-  let (toText -> baseName, fpExt) = splitExtension fp
-  guard $ ext == fpExt
-  guard $ not $ "/" `T.isInfixOf` baseName
-  pure $ NanoID $ encodeUtf8 baseName -- FIXME: not the correct way

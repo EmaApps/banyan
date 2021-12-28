@@ -23,6 +23,7 @@ import qualified Text.Blaze.Html5.Attributes as A
 import Text.Pandoc.Definition (Pandoc (Pandoc))
 import qualified Text.Pandoc.Definition as B
 
+-- | Creation time in UTC.
 newtype CreatedTime = CreatedTime {unCreatedTime :: UTCTime}
   deriving (Show, Eq, Ord)
 
@@ -33,11 +34,10 @@ data Meta = Meta
   deriving (Show, Generic, FromJSON)
 
 instance FromJSON CreatedTime where
-  parseJSON =
-    parseOurDateTimeFormat <=< parseJSON
+  parseJSON = parseCreatedTime <=< parseJSON
 
-parseOurDateTimeFormat :: (MonadFail m, Alternative m) => Text -> m CreatedTime
-parseOurDateTimeFormat s = do
+parseCreatedTime :: (MonadFail m, Alternative m) => Text -> m CreatedTime
+parseCreatedTime s = do
   utct <- parseTimeM False defaultTimeLocale dateFormat . toString $ s
   pure $ CreatedTime utct
   where

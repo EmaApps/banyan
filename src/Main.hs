@@ -7,6 +7,7 @@ module Main where
 
 import qualified Algebra.Graph.AdjacencyMap as AM
 import qualified Banyan.Graph as G
+import Banyan.ID
 import qualified Banyan.Markdown as Markdown
 import Banyan.Model
 import Control.Exception (throw)
