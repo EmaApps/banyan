@@ -132,7 +132,7 @@ renderHtml emaAction model r =
     H.div ! A.class_ "container mx-auto" $ do
       H.div ! A.class_ "mt-8 p-2" $ do
         H.div ! A.class_ "bg-gray-200 p-2 rounded text-center" $
-          H.pre $ H.toHtml $ newFileCli $ _modelNextUUID model
+          H.pre $ H.toHtml $ newFileCli $ _modelNextID model
         case r of
           RIndex -> do
             "You are on the index page. "

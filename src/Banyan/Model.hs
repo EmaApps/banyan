@@ -1,8 +1,13 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Banyan.Model where
 
 import qualified Algebra.Graph.AdjacencyMap as AM
 import Banyan.ID (NodeID, randomId)
 import Banyan.Markdown (Meta, Pandoc)
+import Control.Lens.Combinators (view)
+import Control.Lens.Operators ((%~), (.~))
+import Control.Lens.TH (makeLenses)
 import qualified Data.Map.Strict as Map
 
 type Node = (Maybe Meta, Pandoc)
@@ -13,33 +18,40 @@ data Error = BadGraph Text | BadMarkdown Text
 data Model = Model
   { _modelNodes :: Map NodeID Node,
     _modelGraph :: AM.AdjacencyMap NodeID,
-    _modelNextUUID :: NodeID,
+    _modelNextID :: NodeID,
     _modelErrors :: Map FilePath Error
   }
   deriving (Show)
 
+makeLenses ''Model
+
 modelDel :: NodeID -> Model -> Model
-modelDel fp (Model m g n e) = Model (Map.delete fp m) g n e
+modelDel fp =
+  modelNodes %~ Map.delete fp
 
 modelAdd :: NodeID -> Node -> Model -> Model
-modelAdd fp s (Model m g n e) = Model (Map.insert fp s m) g n e
+modelAdd fp s =
+  modelNodes %~ Map.insert fp s
 
 modelLookup :: NodeID -> Model -> Maybe Node
-modelLookup k (Model m _ _ _) = Map.lookup k m
+modelLookup k =
+  Map.lookup k . view modelNodes
 
 modelResetNextID :: (MonadIO m, HasCallStack) => m (Model -> Model)
 modelResetNextID = do
   rid <- liftIO randomId
-  pure $ \(Model m g _ e) ->
-    if Map.member rid m
-      then error $ "NanoID collision: " <> show rid
-      else Model m g rid e
+  pure $ \model -> case modelLookup rid model of
+    Just _ -> error $ "NanoID collision: " <> show rid
+    Nothing -> model & modelNextID .~ rid
 
 modelSetGraph :: AM.AdjacencyMap NodeID -> Model -> Model
-modelSetGraph g (Model m _ n e) = Model m g n e
+modelSetGraph g =
+  modelGraph .~ g
 
 modelAddError :: FilePath -> Error -> Model -> Model
-modelAddError fp e (Model m g n es) = Model m g n (Map.insert fp e es)
+modelAddError fp e =
+  modelErrors %~ Map.insert fp e
 
 modelClearError :: FilePath -> Model -> Model
-modelClearError fp (Model m g n es) = Model m g n (Map.delete fp es)
+modelClearError fp =
+  modelErrors %~ Map.delete fp
