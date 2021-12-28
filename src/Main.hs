@@ -7,7 +7,7 @@ module Main where
 
 import qualified Algebra.Graph.AdjacencyMap as AM
 import qualified Banyan.Graph as G
-import Banyan.ID
+import Banyan.ID (NodeID, parseUUIDFileName, randomId)
 import qualified Banyan.ID as ID
 import qualified Banyan.Markdown as Markdown
 import Banyan.Model
@@ -49,20 +49,28 @@ instance Ema Model Route where
     (parseUUIDFileName ".html" -> Just uuid) ->
       RNode uuid <$ modelLookup uuid model
     _ -> Nothing
-  allRoutes (Model m _ _) =
+  allRoutes (Model m _ _ _) =
     RIndex : (RNode <$> Map.keys m)
 
 main :: IO ()
-main = do
+main =
   Env.getArgs >>= \case
-    "test" : testArgs -> Env.withArgs testArgs $ T.defaultMain ID.spec
+    "test" : testArgs -> Env.withArgs testArgs $ T.defaultMain spec
     _ -> main'
+
+spec :: T.TestTree
+spec =
+  T.testGroup
+    "Banyan"
+    [ ID.spec
+    ]
 
 main' :: IO ()
 main' =
   Ema.runEma (\act m -> Ema.AssetGenerated Ema.Html . render act m) $ \_act model -> do
-    let layers = Loc.userLayers (one "content")
     nextId <- liftIO randomId
+    let layers = Loc.userLayers (one "content")
+        model0 = Model Map.empty AM.empty nextId mempty
     Emanote.emanate
       layers
       [ (FTDot, "*.dot"),
@@ -70,29 +78,24 @@ main' =
       ]
       mempty
       model
-      (Model Map.empty AM.empty nextId)
+      model0
       patchModel
-
-data Error = BadGraph Text | BadMarkdown Text
-  deriving (Show, Exception)
 
 data FileType = FTMd | FTDot
   deriving (Eq, Show, Ord)
 
 patchModel :: MonadIO m => FileType -> FilePath -> EmaFS.FileAction (NonEmpty (Loc.Loc, FilePath)) -> m (Model -> Model)
-patchModel ftype fp action = do
-  print fp
-  fmap (fromMaybe id) . runMaybeT $ do
+patchModel ftype fp action =
+  fmap (maybe id (. modelClearError fp)) . runMaybeT $ do
     case ftype of
       FTDot ->
         case action of
           EmaFS.Delete -> error "not implemented"
           EmaFS.Refresh _ (Loc.locResolve . head -> absPath) -> do
             s <- liftIO $ readFileText absPath
-            case traceShowId (G.parseDot s) of
+            case G.parseDot s of
               Left e ->
-                -- FIXME: this doesn't show error (at least on macOS M1)
-                throw $ BadGraph e
+                pure $ modelAddError fp (BadGraph e)
               Right (G.buildGraph -> g) ->
                 pure $ modelSetGraph g
       FTMd -> do
@@ -101,7 +104,8 @@ patchModel ftype fp action = do
           EmaFS.Refresh _ (Loc.locResolve . head -> absPath) -> do
             eRes <- Markdown.parseMarkdown absPath
             case eRes of
-              Left err -> throw $ BadMarkdown err
+              Left err ->
+                pure $ modelAddError fp (BadMarkdown err)
               Right v ->
                 pure $ modelAdd uuid v
           EmaFS.Delete -> do
@@ -112,7 +116,7 @@ render emaAction model r =
   Tailwind.layout emaAction (H.title "Emanote-like" >> H.base ! A.href "/") $
     H.div ! A.class_ "container mx-auto" $ do
       H.div ! A.class_ "mt-8 p-2" $ do
-        H.div ! A.class_ "bg-gray-200 p-2 rounded text-center" $ do
+        H.div ! A.class_ "bg-gray-200 p-2 rounded text-center" $
           H.pre $ H.toHtml $ newFileCli $ _modelNextUUID model
         case r of
           RIndex -> do
@@ -129,6 +133,11 @@ render emaAction model r =
             routeElem RIndex "Go to Index"
       H.div ! A.class_ "font-mono text-xs flex items-center justify-center" $ do
         H.pre $ H.toHtml (Shower.shower $ _modelGraph model)
+        when (Map.size (_modelErrors model) > 0) $ do
+          H.div ! A.class_ "text-red-200 p-2" $ do
+            "Errors:"
+            forM_ (Map.toList $ _modelErrors model) $ \(fp, err) ->
+              H.div $ H.toHtml $ show @Text fp <> ": " <> show err
   where
     routeElem r' w =
       H.a ! A.class_ "text-red-500 hover:underline" ! routeHref r' $ w
