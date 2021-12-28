@@ -1,3 +1,4 @@
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeApplications #-}
 
 -- | A very simple site with two routes, and HTML rendered using Blaze DSL
@@ -14,6 +15,8 @@ import qualified Ema.Helper.FileSystem as EmaFS
 import qualified Ema.Helper.Tailwind as Tailwind
 import qualified Emanote
 import qualified Emanote.Source.Loc as Loc
+import NeatInterpolation (text)
+import qualified Shower
 import System.FilePath (splitExtension)
 import System.Random.MWC (createSystemRandom)
 import Text.Blaze.Html5 ((!))
@@ -49,6 +52,12 @@ modelResetNextUUID = do
     if Map.member rid m
       then error "NanoID collision"
       else Model m rid
+
+newFileCli :: NodeID -> Text
+newFileCli (show -> nid) =
+  [text|
+    echo "---\ndate: $(date -u +'%Y-%m-%dT%H:%M:%S')\n---\n\n" >${nid}.md; cat >>${nid}.md
+  |]
 
 instance Ema Model Route where
   encodeRoute _model =
@@ -103,18 +112,21 @@ render emaAction model r =
   Tailwind.layout emaAction (H.title "Emanote-like" >> H.base ! A.href "/") $
     H.div ! A.class_ "container mx-auto" $ do
       H.div ! A.class_ "mt-8 p-2 text-center" $ do
+        H.div ! A.class_ "bg-gray-200 p-2 rounded" $ do
+          H.pre $ H.toHtml $ newFileCli $ _modelNextUUID model
         case r of
           RIndex -> do
             "You are on the index page. "
             forM_ (Map.keys $ _modelNodes model) $ \uuid ->
-              H.li $ routeElem (RNode uuid) $ show uuid
-            H.pre $ H.toHtml (show @Text model)
+              H.li $ H.code $ routeElem (RNode uuid) $ show uuid
           RNode uuid -> do
             "You are on the node page: " <> show uuid
             case modelLookup uuid model of
               Nothing -> "Not found"
-              Just s -> H.pre ! A.class_ "border-2 m-4 p-2" $ H.toHtml s
+              Just s -> H.pre ! A.class_ "border-2 m-4 p-2 overflow-auto" $ H.toHtml s
             routeElem RIndex "Go to Index"
+      H.div ! A.class_ "font-mono text-xs flex items-center justify-center" $ do
+        H.pre $ H.toHtml (Shower.shower model)
   where
     routeElem r' w =
       H.a ! A.class_ "text-red-500 hover:underline" ! routeHref r' $ w

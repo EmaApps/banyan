@@ -26,8 +26,6 @@ executable banyan
     , async
     , base
     , blaze-html
-    , lens
-    , ixset-typed
     , blaze-markup
     , containers
     , data-default
@@ -35,8 +33,12 @@ executable banyan
     , ema                 >=0.3
     , emanote
     , filepath
+    , ixset-typed
+    , lens
     , lvar
     , monad-logger
+    , mwc-random
+    , NanoID
     , neat-interpolation
     , pandoc-types
     , relude
@@ -45,8 +47,6 @@ executable banyan
     , text
     , time
     , unliftio
-    , NanoID
-    , mwc-random
 
   mixins:
     base hiding (Prelude),

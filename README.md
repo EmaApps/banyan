@@ -10,8 +10,19 @@ Fun facts:
 
 Design:
 
-- Tree of nodes: a 'node' correponds to a post -- which may be a micro blogpost sized or tweet sized -- that is uniquely positioned in its context as identified by its location in the tree. 
+- Tree of nodes: a 'node' correponds to a post -- which may be micro blogpost sized or tweet sized -- that is uniquely positioned in its context as identified by its location in the tree. 
 - Child nodes indicate posts made *over time* (hence tree-of-time) under its parent. 
-- Each node is identified by an unique ID, that appears in the URL.
-- We use [Nano ID](https://github.com/ai/nanoid) in place of UUID. It is short and sufficient.
-- "Next ID" is displayed in all pages, to make it easy to create new files quickly. We could improve the workflow further here.
+- Each node is identified by an unique ID, that appears in the URL. We use [Nano ID](https://github.com/ai/nanoid) in place of UUID. It is short and sufficient.
+- "Next ID" is displayed in all pages, to make it easy to create new files quickly elsewhere. We could improve the workflow further here.
+
+Todo:
+
+Right now,
+
+- [x] Dogfooding: start using `./content` for tracking banyan's evolution
+  - [x] Store (UTC) `time` in metadata
+    - [x] At this point: we need a CLI tool to 'add' content? Or have UI show unix CLI to create it as one-liner? `echo "$(date..)" >$ID.md; cat >>$ID.md`
+- [ ] Nice HTML and publish
+  - [ ] Docker image
+  - [ ] Build `./content` using Docker image
+- [ ] Tree relationship...
