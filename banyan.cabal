@@ -23,6 +23,7 @@ extra-source-files:
 executable banyan
   build-depends:
     , aeson
+    , algebraic-graphs
     , async
     , base
     , blaze-html
@@ -35,16 +36,16 @@ executable banyan
     , filepath
     , ixset-typed
     , lens
-    , megaparsec
-    , parser-combinators
-    , algebraic-graphs
     , lvar
+    , megaparsec
     , monad-logger
     , mwc-random
     , NanoID
     , neat-interpolation
     , pandoc-types
+    , parser-combinators
     , relude
+    , safe-exceptions
     , shower
     , tagged
     , text
@@ -76,3 +77,5 @@ executable banyan
   default-language:   Haskell2010
   other-modules:
     Banyan.Graph
+    Banyan.Markdown
+    Banyan.Model

@@ -13,7 +13,7 @@ Design:
 - Tree of nodes: a 'node' correponds to a post -- which may be micro blogpost sized or tweet sized -- that is uniquely positioned in its context as identified by its location in the tree. 
 - Child nodes indicate posts made *over time* (hence tree-of-time) under its parent. 
 - Each node is identified by an unique ID, that appears in the URL. We use [Nano ID](https://github.com/ai/nanoid) in place of UUID. It is short and sufficient.
-- "Next ID" is displayed in all pages, to make it easy to create new files quickly elsewhere. We could improve the workflow further here.
+- "Next ID" is displayed as CLI to create new files in all pages. We could improve the workflow further here.
 - File-format 
   - `.md` files for nodes
   - Tree relationships are defined in `graph.dot` file[^relbrain].
@@ -25,11 +25,13 @@ Right now,
 - [x] Dogfooding: start using `./content` for tracking banyan's evolution
   - [x] Store (UTC) `time` in metadata
     - [x] At this point: we need a CLI tool to 'add' content? Or have UI show unix CLI to create it as one-liner? `echo "$(date..)" >$ID.md; cat >>$ID.md`
-- [ ] Parse and render Markdown
+- [x] Parse and render Markdown
+- [ ] Tree structure...
+  - [x] Parse `graph.dot`
+  - [ ] HTML for tree breadcrumbs & children
 - [ ] Nice HTML and publish
   - [ ] Docker image
   - [ ] Build `./content` using Docker image
-- [ ] Tree structure...
 
 ## Developing
 
