@@ -26,6 +26,8 @@ executable banyan
     , async
     , base
     , blaze-html
+    , lens
+    , ixset-typed
     , blaze-markup
     , containers
     , data-default
@@ -43,7 +45,8 @@ executable banyan
     , text
     , time
     , unliftio
-    , uuid
+    , NanoID
+    , mwc-random
 
   mixins:
     base hiding (Prelude),

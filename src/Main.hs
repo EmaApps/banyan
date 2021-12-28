@@ -4,9 +4,9 @@
 module Main where
 
 import qualified Data.Map.Strict as Map
-import Data.UUID (UUID)
-import qualified Data.UUID as UUID
-import qualified Data.UUID.V4 as UUID4
+import Data.NanoID (NanoID (NanoID))
+import qualified Data.NanoID as NanoID
+import qualified Data.Text as T
 import Ema (Ema (..))
 import qualified Ema
 import qualified Ema.CLI
@@ -15,33 +15,40 @@ import qualified Ema.Helper.Tailwind as Tailwind
 import qualified Emanote
 import qualified Emanote.Source.Loc as Loc
 import System.FilePath (splitExtension)
+import System.Random.MWC (createSystemRandom)
 import Text.Blaze.Html5 ((!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 
+type NodeID = NanoID
+
 data Route
   = RIndex
-  | RNode UUID
+  | RNode NodeID
   deriving (Show)
 
 data Model = Model
-  { _modelNodes :: Map UUID Text,
-    _modelNextUUID :: UUID
+  { _modelNodes :: Map NodeID Text,
+    _modelNextUUID :: NodeID
   }
   deriving (Show)
 
-modelDel :: UUID -> Model -> Model
+modelDel :: NodeID -> Model -> Model
 modelDel fp (Model m n) = Model (Map.delete fp m) n
 
-modelAdd :: UUID -> Text -> Model -> Model
+modelAdd :: NodeID -> Text -> Model -> Model
 modelAdd fp s (Model m n) = Model (Map.insert fp s m) n
 
-modelLookup :: UUID -> Model -> Maybe Text
+modelLookup :: NodeID -> Model -> Maybe Text
 modelLookup k (Model m _) = Map.lookup k m
 
-modelResetNextUUID :: UUID -> Model -> Model
-modelResetNextUUID uuid (Model m _) = do
-  Model m uuid
+modelResetNextUUID :: MonadIO m => m (Model -> Model)
+modelResetNextUUID = do
+  rid <- liftIO randomId
+  pure $ \(Model m _) ->
+    if Map.member rid m
+      then error "NanoID collision"
+      else Model m rid
 
 instance Ema Model Route where
   encodeRoute _model =
@@ -56,31 +63,35 @@ instance Ema Model Route where
   allRoutes (Model m _) =
     RIndex : (RNode <$> Map.keys m)
 
-parseUUIDFileName :: String -> FilePath -> Maybe UUID
+randomId :: IO NanoID
+randomId = do
+  createSystemRandom >>= NanoID.customNanoID NanoID.alphanumeric 13
+
+parseUUIDFileName :: String -> FilePath -> Maybe NodeID
 parseUUIDFileName ext fp = do
-  let (baseName, fpExt) = splitExtension fp
+  let (toText -> baseName, fpExt) = splitExtension fp
   guard $ ext == fpExt
-  UUID.fromString baseName
+  guard $ not $ "/" `T.isInfixOf` baseName
+  pure $ NanoID $ encodeUtf8 baseName -- FIXME: not the correct way
 
 main :: IO ()
 main = do
   Ema.runEma (\act m -> Ema.AssetGenerated Ema.Html . render act m) $ \_act model -> do
     let layers = Loc.userLayers (one "content")
-    nextUUID <- liftIO UUID4.nextRandom
+    nextId <- liftIO randomId
     Emanote.emanate
       layers
       (one ((), "*.md"))
       mempty
       model
-      (Model mempty nextUUID)
+      (Model Map.empty nextId)
       (const patchModel)
 
 patchModel :: (Monad m, MonadIO m) => FilePath -> EmaFS.FileAction (NonEmpty (Loc.Loc, FilePath)) -> m (Model -> Model)
 patchModel fp action =
   fmap (fromMaybe id) . runMaybeT $ do
     uuid <- hoistMaybe $ parseUUIDFileName ".md" fp
-    nextUUID <- liftIO UUID4.nextRandom
-    (modelResetNextUUID nextUUID .) <$> case action of
+    liftA2 (.) modelResetNextUUID $ case action of
       EmaFS.Refresh _ (Loc.locResolve . head -> absPath) -> do
         s <- liftIO $ readFileText absPath
         pure $ modelAdd uuid s

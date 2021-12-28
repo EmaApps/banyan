@@ -3,6 +3,10 @@
   inputs = {
     ema.url = "github:srid/ema/master";
     emanote.url = "github:srid/emanote/master";
+    NanoID = {
+      url = "github:srid/NanoID/srid";
+      flake = false;
+    };
     # Use the nixpkgs used by the pinned ema.
     nixpkgs.follows = "ema/nixpkgs";
 
@@ -55,6 +59,7 @@
             overrides = self: super: with pkgs.haskell.lib; {
               ema = disableCabalFlag inputs.ema.defaultPackage.${system} "with-examples";
               emanote = inputs.emanote.defaultPackage.${system};
+              NanoID = self.callCabal2nix "NanoID" inputs.NanoID { };
             };
             modifier = drv:
               pkgs.haskell.lib.addBuildTools drv

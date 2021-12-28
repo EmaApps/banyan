@@ -1,5 +1,22 @@
 {
   "nodes": {
+    "NanoID": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1640651785,
+        "narHash": "sha256-o3MkV9lOi8uydc2ySlNLjypOWkw3f364VWpsgQY51jo=",
+        "owner": "srid",
+        "repo": "NanoID",
+        "rev": "5fa1b4b204d2619252802279470246bbea0180e8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "srid",
+        "ref": "srid",
+        "repo": "NanoID",
+        "type": "github"
+      }
+    },
     "ema": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -297,6 +314,7 @@
     },
     "root": {
       "inputs": {
+        "NanoID": "NanoID",
         "ema": "ema",
         "emanote": "emanote",
         "flake-compat": "flake-compat_4",
