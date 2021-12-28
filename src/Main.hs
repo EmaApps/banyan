@@ -1,9 +1,12 @@
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeApplications #-}
 
 -- | A very simple site with two routes, and HTML rendered using Blaze DSL
 module Main where
 
+import qualified Banyan.Graph as G
+import Control.Exception
 import qualified Data.Map.Strict as Map
 import Data.NanoID (NanoID (NanoID))
 import qualified Data.NanoID as NanoID
@@ -32,26 +35,30 @@ data Route
 
 data Model = Model
   { _modelNodes :: Map NodeID Text,
+    _modelGraph :: G.Dot,
     _modelNextUUID :: NodeID
   }
   deriving (Show)
 
 modelDel :: NodeID -> Model -> Model
-modelDel fp (Model m n) = Model (Map.delete fp m) n
+modelDel fp (Model m g n) = Model (Map.delete fp m) g n
 
 modelAdd :: NodeID -> Text -> Model -> Model
-modelAdd fp s (Model m n) = Model (Map.insert fp s m) n
+modelAdd fp s (Model m g n) = Model (Map.insert fp s m) g n
 
 modelLookup :: NodeID -> Model -> Maybe Text
-modelLookup k (Model m _) = Map.lookup k m
+modelLookup k (Model m _ _) = Map.lookup k m
 
-modelResetNextUUID :: MonadIO m => m (Model -> Model)
+modelResetNextUUID :: (MonadIO m, HasCallStack) => m (Model -> Model)
 modelResetNextUUID = do
   rid <- liftIO randomId
-  pure $ \(Model m _) ->
+  pure $ \(Model m g _) ->
     if Map.member rid m
-      then error "NanoID collision"
-      else Model m rid
+      then error $ "NanoID collision: " <> show rid
+      else Model m g rid
+
+modelSetGraph :: G.Dot -> Model -> Model
+modelSetGraph g (Model m _ n) = Model m g n
 
 newFileCli :: NodeID -> Text
 newFileCli (show -> nid) =
@@ -69,7 +76,7 @@ instance Ema Model Route where
     (parseUUIDFileName ".html" -> Just uuid) ->
       RNode uuid <$ modelLookup uuid model
     _ -> Nothing
-  allRoutes (Model m _) =
+  allRoutes (Model m _ _) =
     RIndex : (RNode <$> Map.keys m)
 
 randomId :: IO NanoID
@@ -83,6 +90,9 @@ parseUUIDFileName ext fp = do
   guard $ not $ "/" `T.isInfixOf` baseName
   pure $ NanoID $ encodeUtf8 baseName -- FIXME: not the correct way
 
+data FileType = FTMd | FTDot
+  deriving (Eq, Show, Ord)
+
 main :: IO ()
 main = do
   Ema.runEma (\act m -> Ema.AssetGenerated Ema.Html . render act m) $ \_act model -> do
@@ -90,22 +100,41 @@ main = do
     nextId <- liftIO randomId
     Emanote.emanate
       layers
-      (one ((), "*.md"))
+      [ (FTDot, "*.dot"),
+        (FTMd, "*.md")
+      ]
       mempty
       model
-      (Model Map.empty nextId)
-      (const patchModel)
+      (Model Map.empty (G.Digraph ".." mempty) nextId)
+      patchModel
 
-patchModel :: (Monad m, MonadIO m) => FilePath -> EmaFS.FileAction (NonEmpty (Loc.Loc, FilePath)) -> m (Model -> Model)
-patchModel fp action =
+data BadGraph = BadGraph Text
+  deriving (Show, Exception)
+
+patchModel :: MonadIO m => FileType -> FilePath -> EmaFS.FileAction (NonEmpty (Loc.Loc, FilePath)) -> m (Model -> Model)
+patchModel ftype fp action = do
+  print fp
   fmap (fromMaybe id) . runMaybeT $ do
-    uuid <- hoistMaybe $ parseUUIDFileName ".md" fp
-    liftA2 (.) modelResetNextUUID $ case action of
-      EmaFS.Refresh _ (Loc.locResolve . head -> absPath) -> do
-        s <- liftIO $ readFileText absPath
-        pure $ modelAdd uuid s
-      EmaFS.Delete -> do
-        pure $ modelDel uuid
+    case ftype of
+      FTDot ->
+        case action of
+          EmaFS.Delete -> error "not implemented"
+          EmaFS.Refresh _ (Loc.locResolve . head -> absPath) -> do
+            s <- liftIO $ readFileText absPath
+            case traceShowId (G.parseDot s) of
+              Left e ->
+                -- FIXME: this doesn't show error (at least on macOS M1)
+                throw $ BadGraph e
+              Right g ->
+                pure $ modelSetGraph g
+      FTMd -> do
+        uuid <- hoistMaybe $ parseUUIDFileName ".md" fp
+        liftA2 (.) modelResetNextUUID $ case action of
+          EmaFS.Refresh _ (Loc.locResolve . head -> absPath) -> do
+            s <- liftIO $ readFileText absPath
+            pure $ modelAdd uuid s
+          EmaFS.Delete -> do
+            pure $ modelDel uuid
 
 render :: Ema.CLI.Action -> Model -> Route -> LByteString
 render emaAction model r =
@@ -126,7 +155,7 @@ render emaAction model r =
               Just s -> H.pre ! A.class_ "border-2 m-4 p-2 overflow-auto" $ H.toHtml s
             routeElem RIndex "Go to Index"
       H.div ! A.class_ "font-mono text-xs flex items-center justify-center" $ do
-        H.pre $ H.toHtml (Shower.shower model)
+        H.pre $ H.toHtml (Shower.shower $ _modelGraph model)
   where
     routeElem r' w =
       H.a ! A.class_ "text-red-500 hover:underline" ! routeHref r' $ w
