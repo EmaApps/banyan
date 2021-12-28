@@ -1,18 +1,22 @@
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Banyan.Graph where
 
+import qualified Algebra.Graph.AdjacencyMap as AM
+import Data.NanoID (NanoID (..))
 import qualified Text.Megaparsec as M
 import qualified Text.Megaparsec.Char as M
 import qualified Text.Megaparsec.Char.Lexer as L
 
-newtype Node = Node {unNode :: Text}
-  deriving newtype (Eq, Ord, Show)
+type NodeID = NanoID
 
 data Dot
-  = Digraph Text [(Node, Node)]
+  = Digraph Text [(NodeID, NodeID)]
   deriving (Eq, Show)
+
+buildGraph :: Dot -> AM.AdjacencyMap NodeID
+buildGraph (Digraph _ es) =
+  AM.edges es
 
 type Parser = M.Parsec Void Text
 
@@ -33,9 +37,10 @@ dotParser = do
   edges <- M.many $ do
     from <- lexeme $ M.some M.alphaNumChar
     void $ lexeme $ M.string "->"
+    -- TODO: Support `a -> {b, c}` syntax.
     to <- lexeme $ M.some M.alphaNumChar
     void $ lexeme . M.string $ ";"
-    pure (Node (toText from), Node (toText to))
+    pure (NanoID (encodeUtf8 from), NanoID (encodeUtf8 to))
   void $ lexeme $ M.string "}"
   pure $ Digraph (toText graphName) edges
 

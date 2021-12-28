@@ -5,6 +5,7 @@
 -- | A very simple site with two routes, and HTML rendered using Blaze DSL
 module Main where
 
+import qualified Algebra.Graph.AdjacencyMap as AM
 import qualified Banyan.Graph as G
 import Control.Exception
 import qualified Data.Map.Strict as Map
@@ -35,7 +36,7 @@ data Route
 
 data Model = Model
   { _modelNodes :: Map NodeID Text,
-    _modelGraph :: G.Dot,
+    _modelGraph :: AM.AdjacencyMap NodeID,
     _modelNextUUID :: NodeID
   }
   deriving (Show)
@@ -57,7 +58,7 @@ modelResetNextUUID = do
       then error $ "NanoID collision: " <> show rid
       else Model m g rid
 
-modelSetGraph :: G.Dot -> Model -> Model
+modelSetGraph :: AM.AdjacencyMap NodeID -> Model -> Model
 modelSetGraph g (Model m _ n) = Model m g n
 
 newFileCli :: NodeID -> Text
@@ -105,7 +106,7 @@ main = do
       ]
       mempty
       model
-      (Model Map.empty (G.Digraph ".." mempty) nextId)
+      (Model Map.empty AM.empty nextId)
       patchModel
 
 data BadGraph = BadGraph Text
@@ -125,7 +126,7 @@ patchModel ftype fp action = do
               Left e ->
                 -- FIXME: this doesn't show error (at least on macOS M1)
                 throw $ BadGraph e
-              Right g ->
+              Right (G.buildGraph -> g) ->
                 pure $ modelSetGraph g
       FTMd -> do
         uuid <- hoistMaybe $ parseUUIDFileName ".md" fp
