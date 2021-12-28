@@ -12,10 +12,10 @@ import Test.Tasty.Hedgehog (testProperty)
 -- | Like UUID but much shorter. Collisions are still (reasonably) rare.
 type NodeID = NanoID
 
-randomId :: IO NanoID
+randomId :: MonadIO m => m NanoID
 randomId = do
-  g <- createSystemRandom
-  rid <- NanoID.customNanoID NanoID.alphanumeric 13 g
+  g <- liftIO createSystemRandom
+  rid <- liftIO $ NanoID.customNanoID NanoID.alphanumeric 13 g
   if any ((`T.isPrefixOf` show rid) . show) [0 :: Int .. 9]
     then randomId -- Avoid IDs beginning with numerals (have to be quoted in DOT)
     else pure rid

@@ -11,6 +11,8 @@ import Banyan.ID (NodeID, parseUUIDFileName, randomId)
 import qualified Banyan.ID as ID
 import qualified Banyan.Markdown as Markdown
 import Banyan.Model
+import qualified Banyan.Model as Model
+import Control.Lens.Operators ((^.))
 import qualified Data.Map.Strict as Map
 import Ema (Ema (..))
 import qualified Ema
@@ -43,16 +45,16 @@ instance Ema Model (Either FilePath Route) where
     either id $ \case
       RIndex -> "index.html"
       RNode uuid -> show uuid <> ".html"
-
   decodeRoute model = \case
-    "banyan.svg" -> Just $ Left "content/banyan.svg" -- TODO: store static files in model, after lens refactor
     "index.html" -> Just $ Right RIndex
     (parseUUIDFileName ".html" -> Just uuid) ->
       Right (RNode uuid) <$ modelLookup uuid model
-    _ -> Nothing
-  allRoutes (Model m _ _ _) =
-    (Right <$> RIndex : (RNode <$> Map.keys m))
-      <> [Left "favicon.svg"]
+    fp -> do
+      absPath <- Map.lookup fp (model ^. modelFiles)
+      pure $ Left absPath
+  allRoutes m =
+    (Right <$> RIndex : (RNode <$> Map.keys (m ^. modelNodes)))
+      <> fmap Left (Map.keys $ m ^. modelFiles)
 
 main :: IO ()
 main =
@@ -70,51 +72,63 @@ spec =
 main' :: IO ()
 main' =
   Ema.runEma render $ \_act model -> do
-    nextId <- liftIO randomId
     let layers = Loc.userLayers (one "content")
-        model0 = Model Map.empty AM.empty nextId mempty
+    model0 <- Model.emptyModel
     Emanote.emanate
       layers
       [ (FTDot, "*.dot"),
-        (FTMd, "*.md")
+        (FTMd, "*.md"),
+        (FTStatic, "*")
       ]
       mempty
       model
       model0
-      patchModel
+      (\a b -> patchModel a b . fmap (Loc.locResolve . head))
 
-data FileType = FTMd | FTDot
+data FileType = FTMd | FTDot | FTStatic
   deriving (Eq, Show, Ord)
 
-patchModel :: MonadIO m => FileType -> FilePath -> EmaFS.FileAction (NonEmpty (Loc.Loc, FilePath)) -> m (Model -> Model)
+patchModel ::
+  MonadIO m =>
+  -- | Type of file being patched.
+  FileType ->
+  -- | Relative path of the file.
+  FilePath ->
+  -- | Specific action on the file, along with its absolute path (if it still
+  -- exists).
+  EmaFS.FileAction FilePath ->
+  m (Model -> Model)
 patchModel ftype fp action =
   fmap (maybe id (. modelClearError fp)) . runMaybeT $ do
     case ftype of
-      FTDot ->
-        case action of
-          EmaFS.Delete -> error "not implemented"
-          EmaFS.Refresh _ (Loc.locResolve . head -> absPath) -> do
-            s <- liftIO $ readFileText absPath
-            case G.parseDot s of
-              Left e ->
-                pure $ modelAddError fp (BadGraph e)
-              Right (G.buildGraph -> g) ->
-                pure $ modelSetGraph g
+      FTDot -> case action of
+        EmaFS.Delete ->
+          pure $ modelSetGraph AM.empty
+        EmaFS.Refresh _ absPath -> do
+          s <- liftIO $ readFileText absPath
+          pure $
+            G.parseDot s
+              & either
+                (modelAddError fp . BadGraph)
+                (modelSetGraph . G.buildGraph)
       FTMd -> do
         uuid <- hoistMaybe $ parseUUIDFileName ".md" fp
         -- Reset the next id, because a .md file may have been added (or
         -- deleted).  Ideally we should do this only on additions (and possibly
         -- on deletion), and not no modifications.
         liftA2 (.) modelResetNextID $ case action of
-          EmaFS.Refresh _ (Loc.locResolve . head -> absPath) -> do
-            eRes <- Markdown.parseMarkdown absPath
-            case eRes of
-              Left err ->
-                pure $ modelAddError fp (BadMarkdown err)
-              Right v ->
-                pure $ modelAdd uuid v
+          EmaFS.Refresh _ absPath -> do
+            Markdown.parseMarkdown absPath
+              <&> either
+                (modelAddError fp . BadMarkdown)
+                (modelAdd uuid)
           EmaFS.Delete -> do
             pure $ modelDel uuid
+      FTStatic -> case action of
+        EmaFS.Refresh _ absPath -> do
+          pure $ modelAddFile fp absPath
+        EmaFS.Delete ->
+          pure $ modelDelFile fp
 
 render :: Ema.CLI.Action -> Model -> Either FilePath Route -> Ema.Asset LByteString
 render act model = \case
