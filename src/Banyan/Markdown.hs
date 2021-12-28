@@ -12,7 +12,7 @@ where
 
 import Control.Exception (throw)
 import Data.Aeson (FromJSON (parseJSON))
-import Data.Default
+import Data.Default (Default (..))
 import qualified Data.Text as T
 import Data.Time.Clock (UTCTime)
 import Data.Time.Format (defaultTimeLocale, parseTimeM)

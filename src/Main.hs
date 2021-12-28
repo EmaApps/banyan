@@ -1,66 +1,24 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TypeApplications #-}
-
 -- | A very simple site with two routes, and HTML rendered using Blaze DSL
 module Main where
 
-import qualified Algebra.Graph.AdjacencyMap as AM
-import qualified Banyan.Graph as G
-import Banyan.ID (NodeID, parseUUIDFileName, randomId)
 import qualified Banyan.ID as ID
-import qualified Banyan.Markdown as Markdown
-import Banyan.Model
+import Banyan.Model (Model)
 import qualified Banyan.Model as Model
-import Control.Lens.Operators ((^.))
-import qualified Data.Map.Strict as Map
-import Ema (Ema (..))
+import qualified Banyan.Model.Patch as Patch
+import Banyan.Route (Route)
+import qualified Banyan.View as View
 import qualified Ema
 import qualified Ema.CLI
-import qualified Ema.Helper.FileSystem as EmaFS
-import qualified Ema.Helper.Tailwind as Tailwind
 import qualified Emanote
 import qualified Emanote.Source.Loc as Loc
-import NeatInterpolation (text)
-import qualified Shower
 import qualified System.Environment as Env
 import qualified Test.Tasty as T
-import Text.Blaze.Html5 ((!))
-import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as A
-
-data Route
-  = RIndex
-  | RNode NodeID
-  deriving (Show)
-
-newFileCli :: NodeID -> Text
-newFileCli (show -> nid) =
-  [text|
-    echo "---\ndate: $(date -u +'%Y-%m-%dT%H:%M:%S')\n---\n\n" >${nid}.md; cat >>${nid}.md
-  |]
-
-instance Ema Model (Either FilePath Route) where
-  encodeRoute _model =
-    either id $ \case
-      RIndex -> "index.html"
-      RNode uuid -> show uuid <> ".html"
-  decodeRoute model = \case
-    "index.html" -> Just $ Right RIndex
-    (parseUUIDFileName ".html" -> Just uuid) ->
-      Right (RNode uuid) <$ modelLookup uuid model
-    fp -> do
-      absPath <- Map.lookup fp (model ^. modelFiles)
-      pure $ Left absPath
-  allRoutes m =
-    (Right <$> RIndex : (RNode <$> Map.keys (m ^. modelNodes)))
-      <> fmap Left (Map.keys $ m ^. modelFiles)
 
 main :: IO ()
 main =
   Env.getArgs >>= \case
     "test" : testArgs -> Env.withArgs testArgs $ T.defaultMain spec
-    _ -> main'
+    _ -> exe
 
 spec :: T.TestTree
 spec =
@@ -69,66 +27,18 @@ spec =
     [ ID.spec
     ]
 
-main' :: IO ()
-main' =
+exe :: IO ()
+exe =
   Ema.runEma render $ \_act model -> do
     let layers = Loc.userLayers (one "content")
     model0 <- Model.emptyModel
     Emanote.emanate
       layers
-      [ (FTDot, "*.dot"),
-        (FTMd, "*.md"),
-        (FTStatic, "*")
-      ]
-      mempty
+      Patch.watching
+      Patch.ignoring
       model
       model0
-      (\a b -> patchModel a b . fmap (Loc.locResolve . head))
-
-data FileType = FTMd | FTDot | FTStatic
-  deriving (Eq, Show, Ord)
-
-patchModel ::
-  MonadIO m =>
-  -- | Type of file being patched.
-  FileType ->
-  -- | Relative path of the file.
-  FilePath ->
-  -- | Specific action on the file, along with its absolute path (if it still
-  -- exists).
-  EmaFS.FileAction FilePath ->
-  m (Model -> Model)
-patchModel ftype fp action =
-  fmap (maybe id (. modelClearError fp)) . runMaybeT $ do
-    case ftype of
-      FTDot -> case action of
-        EmaFS.Delete ->
-          pure $ modelSetGraph AM.empty
-        EmaFS.Refresh _ absPath -> do
-          s <- liftIO $ readFileText absPath
-          pure $
-            G.parseDot s
-              & either
-                (modelAddError fp . BadGraph)
-                (modelSetGraph . G.buildGraph)
-      FTMd -> do
-        uuid <- hoistMaybe $ parseUUIDFileName ".md" fp
-        -- Reset the next id, because a .md file may have been added (or
-        -- deleted).  Ideally we should do this only on additions (and possibly
-        -- on deletion), and not no modifications.
-        liftA2 (.) modelResetNextID $ case action of
-          EmaFS.Refresh _ absPath -> do
-            Markdown.parseMarkdown absPath
-              <&> either
-                (modelAddError fp . BadMarkdown)
-                (modelAdd uuid)
-          EmaFS.Delete -> do
-            pure $ modelDel uuid
-      FTStatic -> case action of
-        EmaFS.Refresh _ absPath -> do
-          pure $ modelAddFile fp absPath
-        EmaFS.Delete ->
-          pure $ modelDelFile fp
+      (\a b -> Patch.patchModel a b . fmap (Loc.locResolve . head))
 
 render :: Ema.CLI.Action -> Model -> Either FilePath Route -> Ema.Asset LByteString
 render act model = \case
@@ -138,37 +48,4 @@ render act model = \case
     Ema.AssetStatic fp
   Right r ->
     -- Generate a Html route; hot-reload is enabled.
-    Ema.AssetGenerated Ema.Html $ renderHtml act model r
-
-renderHtml :: Ema.CLI.Action -> Model -> Route -> LByteString
-renderHtml emaAction model r =
-  Tailwind.layout emaAction (H.title "Banyan" >> H.base ! A.href "/" >> H.link ! A.rel "shortcut icon" ! A.href "banyan.svg" ! A.type_ "image/svg") $
-    H.div ! A.class_ "container mx-auto" $ do
-      H.div ! A.class_ "mt-8 p-2" $ do
-        H.div ! A.class_ "bg-gray-200 p-2 rounded text-center" $
-          H.pre $ H.toHtml $ newFileCli $ _modelNextID model
-        case r of
-          RIndex -> do
-            "You are on the index page. "
-            forM_ (Map.keys $ _modelNodes model) $ \uuid ->
-              H.li $ H.code $ routeElem (Right $ RNode uuid) $ show uuid
-          RNode uuid -> do
-            "You are on the node page: " <> show uuid
-            case modelLookup uuid model of
-              Nothing -> "Not found"
-              Just (mMeta, pandoc) -> do
-                H.div ! A.class_ "border-2 m-4 p-2" $ Markdown.renderPandoc pandoc
-                H.div $ H.toHtml $ show @Text mMeta
-            routeElem (Right RIndex) "Go to Index"
-      H.div ! A.class_ "font-mono text-xs flex items-center justify-center" $ do
-        H.pre $ H.toHtml (Shower.shower $ G.toTree $ _modelGraph model)
-        when (Map.size (_modelErrors model) > 0) $ do
-          H.div ! A.class_ "text-red-200 p-2" $ do
-            "Errors:"
-            forM_ (Map.toList $ _modelErrors model) $ \(fp, err) ->
-              H.div $ H.toHtml $ show @Text fp <> ": " <> show err
-  where
-    routeElem (r' :: Either FilePath Route) w =
-      H.a ! A.class_ "text-red-500 hover:underline" ! routeHref r' $ w
-    routeHref r' =
-      A.href (fromString . toString $ Ema.routeUrl model r')
+    Ema.AssetGenerated Ema.Html $ View.renderHtml act model r

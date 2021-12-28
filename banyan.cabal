@@ -28,12 +28,15 @@ executable banyan
     , base
     , blaze-html
     , blaze-markup
+    , bytestring
     , containers
     , data-default
     , directory
     , ema                 >=0.3
     , emanote
     , filepath
+    , filepattern
+    , hedgehog
     , ixset-typed
     , lens
     , lvar
@@ -48,14 +51,12 @@ executable banyan
     , safe-exceptions
     , shower
     , tagged
-    , text
-    , time
-    , unliftio
-    , bytestring
     , tasty
     , tasty-hedgehog
     , tasty-quickcheck
-    , hedgehog
+    , text
+    , time
+    , unliftio
 
   mixins:
     base hiding (Prelude),
@@ -82,6 +83,9 @@ executable banyan
   default-language:   Haskell2010
   other-modules:
     Banyan.Graph
+    Banyan.ID
     Banyan.Markdown
     Banyan.Model
-    Banyan.ID
+    Banyan.Model.Patch
+    Banyan.Route
+    Banyan.View

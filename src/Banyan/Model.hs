@@ -8,7 +8,6 @@ import Banyan.Markdown (Meta, Pandoc)
 import Control.Lens.Combinators (view)
 import Control.Lens.Operators ((%~), (.~))
 import Control.Lens.TH (makeLenses)
-import Data.Default
 import qualified Data.Map.Strict as Map
 
 type Node = (Maybe Meta, Pandoc)
