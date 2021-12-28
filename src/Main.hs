@@ -11,7 +11,6 @@ import Banyan.ID (NodeID, parseUUIDFileName, randomId)
 import qualified Banyan.ID as ID
 import qualified Banyan.Markdown as Markdown
 import Banyan.Model
-import Control.Exception (throw)
 import qualified Data.Map.Strict as Map
 import Ema (Ema (..))
 import qualified Ema
@@ -39,18 +38,21 @@ newFileCli (show -> nid) =
     echo "---\ndate: $(date -u +'%Y-%m-%dT%H:%M:%S')\n---\n\n" >${nid}.md; cat >>${nid}.md
   |]
 
-instance Ema Model Route where
+instance Ema Model (Either FilePath Route) where
   encodeRoute _model =
-    \case
+    either id $ \case
       RIndex -> "index.html"
       RNode uuid -> show uuid <> ".html"
+
   decodeRoute model = \case
-    "index.html" -> Just RIndex
+    "banyan.svg" -> Just $ Left "content/banyan.svg" -- TODO: store static files in model, after lens refactor
+    "index.html" -> Just $ Right RIndex
     (parseUUIDFileName ".html" -> Just uuid) ->
-      RNode uuid <$ modelLookup uuid model
+      Right (RNode uuid) <$ modelLookup uuid model
     _ -> Nothing
   allRoutes (Model m _ _ _) =
-    RIndex : (RNode <$> Map.keys m)
+    (Right <$> RIndex : (RNode <$> Map.keys m))
+      <> [Left "favicon.svg"]
 
 main :: IO ()
 main =
@@ -67,7 +69,7 @@ spec =
 
 main' :: IO ()
 main' =
-  Ema.runEma (\act m -> Ema.AssetGenerated Ema.Html . render act m) $ \_act model -> do
+  Ema.runEma render $ \_act model -> do
     nextId <- liftIO randomId
     let layers = Loc.userLayers (one "content")
         model0 = Model Map.empty AM.empty nextId mempty
@@ -100,7 +102,10 @@ patchModel ftype fp action =
                 pure $ modelSetGraph g
       FTMd -> do
         uuid <- hoistMaybe $ parseUUIDFileName ".md" fp
-        liftA2 (.) modelResetNextUUID $ case action of
+        -- Reset the next id, because a .md file may have been added (or
+        -- deleted).  Ideally we should do this only on additions (and possibly
+        -- on deletion), and not no modifications.
+        liftA2 (.) modelResetNextID $ case action of
           EmaFS.Refresh _ (Loc.locResolve . head -> absPath) -> do
             eRes <- Markdown.parseMarkdown absPath
             case eRes of
@@ -111,9 +116,19 @@ patchModel ftype fp action =
           EmaFS.Delete -> do
             pure $ modelDel uuid
 
-render :: Ema.CLI.Action -> Model -> Route -> LByteString
-render emaAction model r =
-  Tailwind.layout emaAction (H.title "Emanote-like" >> H.base ! A.href "/") $
+render :: Ema.CLI.Action -> Model -> Either FilePath Route -> Ema.Asset LByteString
+render act model = \case
+  Left fp ->
+    -- This instructs ema to treat this route "as is" (ie. a static file; no generation)
+    -- The argument `fp` refers to the absolute path to the static file.
+    Ema.AssetStatic fp
+  Right r ->
+    -- Generate a Html route; hot-reload is enabled.
+    Ema.AssetGenerated Ema.Html $ renderHtml act model r
+
+renderHtml :: Ema.CLI.Action -> Model -> Route -> LByteString
+renderHtml emaAction model r =
+  Tailwind.layout emaAction (H.title "Banyan" >> H.base ! A.href "/" >> H.link ! A.rel "shortcut icon" ! A.href "banyan.svg" ! A.type_ "image/svg") $
     H.div ! A.class_ "container mx-auto" $ do
       H.div ! A.class_ "mt-8 p-2" $ do
         H.div ! A.class_ "bg-gray-200 p-2 rounded text-center" $
@@ -122,7 +137,7 @@ render emaAction model r =
           RIndex -> do
             "You are on the index page. "
             forM_ (Map.keys $ _modelNodes model) $ \uuid ->
-              H.li $ H.code $ routeElem (RNode uuid) $ show uuid
+              H.li $ H.code $ routeElem (Right $ RNode uuid) $ show uuid
           RNode uuid -> do
             "You are on the node page: " <> show uuid
             case modelLookup uuid model of
@@ -130,16 +145,16 @@ render emaAction model r =
               Just (mMeta, pandoc) -> do
                 H.div ! A.class_ "border-2 m-4 p-2" $ Markdown.renderPandoc pandoc
                 H.div $ H.toHtml $ show @Text mMeta
-            routeElem RIndex "Go to Index"
+            routeElem (Right RIndex) "Go to Index"
       H.div ! A.class_ "font-mono text-xs flex items-center justify-center" $ do
-        H.pre $ H.toHtml (Shower.shower $ _modelGraph model)
+        H.pre $ H.toHtml (Shower.shower $ G.toTree $ _modelGraph model)
         when (Map.size (_modelErrors model) > 0) $ do
           H.div ! A.class_ "text-red-200 p-2" $ do
             "Errors:"
             forM_ (Map.toList $ _modelErrors model) $ \(fp, err) ->
               H.div $ H.toHtml $ show @Text fp <> ": " <> show err
   where
-    routeElem r' w =
+    routeElem (r' :: Either FilePath Route) w =
       H.a ! A.class_ "text-red-500 hover:underline" ! routeHref r' $ w
     routeHref r' =
       A.href (fromString . toString $ Ema.routeUrl model r')

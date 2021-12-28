@@ -3,7 +3,9 @@
 module Banyan.Graph where
 
 import qualified Algebra.Graph.AdjacencyMap as AM
+import qualified Algebra.Graph.AdjacencyMap.Algorithm as AM
 import Data.NanoID (NanoID (..))
+import Data.Tree (Forest)
 import qualified Text.Megaparsec as M
 import qualified Text.Megaparsec.Char as M
 import qualified Text.Megaparsec.Char.Lexer as L
@@ -17,6 +19,9 @@ data Dot
 buildGraph :: Dot -> AM.AdjacencyMap NodeID
 buildGraph (Digraph _ es) =
   AM.edges es
+
+toTree :: AM.AdjacencyMap NodeID -> Forest NodeID
+toTree = AM.dfsForest
 
 type Parser = M.Parsec Void Text
 

@@ -27,8 +27,8 @@ modelAdd fp s (Model m g n e) = Model (Map.insert fp s m) g n e
 modelLookup :: NodeID -> Model -> Maybe Node
 modelLookup k (Model m _ _ _) = Map.lookup k m
 
-modelResetNextUUID :: (MonadIO m, HasCallStack) => m (Model -> Model)
-modelResetNextUUID = do
+modelResetNextID :: (MonadIO m, HasCallStack) => m (Model -> Model)
+modelResetNextID = do
   rid <- liftIO randomId
   pure $ \(Model m g _ e) ->
     if Map.member rid m
