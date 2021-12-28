@@ -8,6 +8,7 @@ module Main where
 import qualified Algebra.Graph.AdjacencyMap as AM
 import qualified Banyan.Graph as G
 import Banyan.ID
+import qualified Banyan.ID as ID
 import qualified Banyan.Markdown as Markdown
 import Banyan.Model
 import Control.Exception (throw)
@@ -21,6 +22,8 @@ import qualified Emanote
 import qualified Emanote.Source.Loc as Loc
 import NeatInterpolation (text)
 import qualified Shower
+import qualified System.Environment as Env
+import qualified Test.Tasty as T
 import Text.Blaze.Html5 ((!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -51,6 +54,12 @@ instance Ema Model Route where
 
 main :: IO ()
 main = do
+  Env.getArgs >>= \case
+    "test" : testArgs -> Env.withArgs testArgs $ T.defaultMain ID.spec
+    _ -> main'
+
+main' :: IO ()
+main' =
   Ema.runEma (\act m -> Ema.AssetGenerated Ema.Html . render act m) $ \_act model -> do
     let layers = Loc.userLayers (one "content")
     nextId <- liftIO randomId
