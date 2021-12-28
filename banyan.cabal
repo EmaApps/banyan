@@ -35,6 +35,9 @@ executable banyan
     , filepath
     , ixset-typed
     , lens
+    , megaparsec
+    , parser-combinators
+    , algebraic-graphs
     , lvar
     , monad-logger
     , mwc-random
@@ -71,3 +74,5 @@ executable banyan
   main-is:            Main.hs
   hs-source-dirs:     src
   default-language:   Haskell2010
+  other-modules:
+    Banyan.Graph

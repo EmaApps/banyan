@@ -15,6 +15,19 @@ Design:
 - Each node is identified by an unique ID, that appears in the URL. We use [Nano ID](https://github.com/ai/nanoid) in place of UUID. It is short and sufficient.
 - "Next ID" is displayed in all pages, to make it easy to create new files quickly elsewhere. We could improve the workflow further here.
 
+File-format brainstorming:
+
+- `.md` files for nodes
+- How to represent relationships? Candidates:
+  1. Filesystem hierarchy
+    - Too complex to deal with
+  1. YAML metadata `parent` in each ${node}.md
+    - Organizing nodes en masses involves fiddling with multiple files
+  1. Separate file, eg: [DOT](https://www.graphviz.org/doc/info/lang.html), for graphs
+    - Automatically allows multi-parent nodes
+      - Visually, we present one parent, while demoting others.
+    - Organizing nodes en masse is easier 
+
 Todo:
 
 Right now,
@@ -22,7 +35,14 @@ Right now,
 - [x] Dogfooding: start using `./content` for tracking banyan's evolution
   - [x] Store (UTC) `time` in metadata
     - [x] At this point: we need a CLI tool to 'add' content? Or have UI show unix CLI to create it as one-liner? `echo "$(date..)" >$ID.md; cat >>$ID.md`
+- [ ] Parse and render Markdown
 - [ ] Nice HTML and publish
   - [ ] Docker image
   - [ ] Build `./content` using Docker image
-- [ ] Tree relationship...
+- [ ] Tree structure...
+
+## Developing
+
+```
+bin/run
+```

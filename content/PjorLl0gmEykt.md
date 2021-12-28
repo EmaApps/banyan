@@ -1,5 +1,4 @@
 ---
-parent: uuid
+title: ChangeLog
 ---
 
-hello *world*
