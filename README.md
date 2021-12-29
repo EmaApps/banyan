@@ -4,6 +4,14 @@ WIP: Tree of time.
 
 Like [Wind of change](https://windofchange.me), but using the tree model, and as a static site -- so there is no social aspect, for which you should still use WOC. I probably will begin using banyan primarily, and then cross-post its content to WOC for enabling discussions.
 
+## Developing
+
+```
+bin/run
+```
+
+## Notes
+
 Fun facts:
 
 - banyan is the first project to use Emanote [as a library](https://github.com/srid/banyan/commit/869991888349190855b3c963493f9ff352d250d0), so as to provide an Emanote-like experience without being tied to its specific domain area (Zettelkasten, notebook, wiki).
@@ -35,12 +43,6 @@ Right now,
 - [ ] Nice HTML and publish
   - [ ] Docker image
   - [ ] Build `./content` using Docker image
-
-## Developing
-
-```
-bin/run
-```
 
 [^relbrain]: File-format brainstorming:
     - How to represent relationships? Candidates:
