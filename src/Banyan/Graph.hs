@@ -21,7 +21,13 @@ buildGraph (Digraph _ es) =
   AM.edges es
 
 toTree :: AM.AdjacencyMap NodeID -> Forest NodeID
-toTree = AM.dfsForest
+toTree g = AM.bfsForest (getRoots g) g
+
+getRoots :: AM.AdjacencyMap NodeID -> [NodeID]
+getRoots g = filter isRoot $ AM.vertexList g
+  where
+    isRoot nid =
+      null $ AM.preSet nid g
 
 getDescendents :: NodeID -> AM.AdjacencyMap NodeID -> [NodeID]
 getDescendents nid g =

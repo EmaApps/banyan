@@ -40,9 +40,13 @@ Right now,
   - [ ] Breadcrumb instead of title
   - [x] HTML for child listing and count
     - Supress leave nodes from sidebar listing 
+- Bugs/issues
+  - Nodes not in `graph.dot` must appear in sidebar
+  - dfsForest: creates non-parents. use bfsForest?
 - [ ] Nice HTML and publish
   - [ ] Docker image
   - [ ] Build `./content` using Docker image
+  - [ ] Or: run websocket server in DigitalOcean with syncthing
 
 [^relbrain]: File-format brainstorming:
     - How to represent relationships? Candidates:

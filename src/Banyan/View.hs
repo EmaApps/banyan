@@ -40,20 +40,21 @@ renderHtml emaAction model r =
               let childNodes' = G.getDescendents nid $ model ^. modelGraph
                   -- TODO: DRY with sidebar
                   childNodes = sortOn (fmap fst . flip modelLookup model) childNodes'
-              forM_ childNodes $ \node ->
-                H.div $ do
-                  case modelLookup node model of
-                    Nothing -> do
-                      "missing!"
-                      show node
-                    Just (childMMeta, childPandoc) -> do
-                      H.div $ do
-                        let childTitle = fromMaybe (show node) $ Markdown.title =<< childMMeta
-                        H.strong $ H.toHtml childTitle
-                        " / "
-                        let nodeDate = maybe "No date" show $ Markdown.date =<< childMMeta
-                        H.toHtml @Text nodeDate
-                      Markdown.renderPandoc childPandoc
+              H.div ! A.class_ "my-2 " $ do
+                forM_ childNodes $ \node ->
+                  H.div ! A.class_ "border-2 p-2 my-2 bg-gray-50" $ do
+                    case modelLookup node model of
+                      Nothing -> do
+                        "missing!"
+                        show node
+                      Just (childMMeta, childPandoc) -> do
+                        H.div ! A.class_ "text-sm text-gray-500" $ do
+                          let childTitle = fromMaybe (show node) $ Markdown.title =<< childMMeta
+                          H.span ! A.class_ "font-mono" $ H.toHtml childTitle
+                          " / "
+                          let nodeDate = maybe "No date" show $ Markdown.date =<< childMMeta
+                          H.toHtml @Text nodeDate
+                        Markdown.renderPandoc childPandoc
               H.div ! A.class_ "font-mono text-xs text-gray-400 mt-8" $ H.toHtml $ show @Text mMeta
 
 topbar :: Model -> H.Html

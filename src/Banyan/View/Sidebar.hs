@@ -14,23 +14,23 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 
 renderSidebar :: Model -> Route -> H.Html
-renderSidebar model hereR =
+renderSidebar model hereR = do
+  let forest = G.toTree $ model ^. modelGraph
   H.div ! A.class_ "border-r-2 md:h-full pr-2 mr-2" $ do
-    let forest = G.toTree $ model ^. modelGraph
     routeElemUnlessHere model hereR (Right RIndex) "Index"
     H.div ! A.class_ "font-mono" $ do
       forM_ forest $ \node ->
-        renderNode model hereR node
+        renderNode model hereR True node
 
-renderNode :: Model -> Route -> Tree G.NodeID -> H.Html
-renderNode model hereR (Node nid children) = do
-  whenNotNull children $ \_ -> do
+renderNode :: Model -> Route -> Bool -> Tree G.NodeID -> H.Html
+renderNode model hereR emptyAllowed (Node nid children) = do
+  when (emptyAllowed || not (null children)) $ do
     H.div ! A.class_ "pl-2" $ do
       nodeLink model hereR nid
       H.div $ do
         let childNodes = sortOn (fmap fst . flip modelLookup model . Tree.rootLabel) children
         forM_ childNodes $ \node ->
-          renderNode model hereR node
+          renderNode model hereR False node
 
 nodeLink :: Model -> Route -> NodeID -> H.Html
 nodeLink model hereR nid =
