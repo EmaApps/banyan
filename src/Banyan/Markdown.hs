@@ -31,7 +31,10 @@ data Meta = Meta
   { title :: Maybe Text,
     date :: Maybe CreatedTime
   }
-  deriving (Show, Generic, FromJSON)
+  deriving (Show, Generic, Eq, FromJSON)
+
+instance Ord Meta where
+  compare = compare `on` (Down . date)
 
 instance FromJSON CreatedTime where
   parseJSON = parseCreatedTime <=< parseJSON

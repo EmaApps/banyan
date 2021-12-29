@@ -4,7 +4,6 @@
 
 module Banyan.View where
 
-import qualified Banyan.Graph as G
 import Banyan.ID (NodeID)
 import qualified Banyan.Markdown as Markdown
 import Banyan.Model
@@ -24,7 +23,7 @@ renderHtml emaAction model r =
   Tailwind.layout emaAction (H.title "Banyan" >> H.base ! A.href "/" >> H.link ! A.rel "shortcut icon" ! A.href "banyan.svg" ! A.type_ "image/svg") $
     renderLayout
       model
-      (H.pre ! A.class_ "overflow-auto py-2" $ H.toHtml $ newFileCli $ _modelNextID model)
+      (topbar model)
       (Sidebar.renderSidebar model r)
       $ case r of
         RIndex -> do
@@ -35,9 +34,21 @@ renderHtml emaAction model r =
           case modelLookup nid model of
             Nothing -> "Not found"
             Just (mMeta, pandoc) -> do
+              -- TODO: this should be a breadcrumb
               H.header ! A.class_ "text-2xl font-bold" $ show nid
               H.div ! A.class_ "my-2" $ Markdown.renderPandoc pandoc
               H.div ! A.class_ "font-mono text-xs text-gray-400 mt-8" $ H.toHtml $ show @Text mMeta
+
+topbar :: Model -> H.Html
+topbar model =
+  H.pre ! A.class_ "overflow-auto py-2" $ do
+    H.toHtml $ newFileCli $ _modelNextID model
+  where
+    newFileCli :: NodeID -> Text
+    newFileCli (show -> nid) =
+      [text|
+        echo "---\ndate: $(date -u +'%Y-%m-%dT%H:%M:%S')\n---\n\n" >${nid}.md; cat >>${nid}.md
+      |]
 
 renderLayout :: Model -> H.Html -> H.Html -> H.Html -> H.Html
 renderLayout model top sidebar main = do
@@ -57,9 +68,3 @@ renderFooter model = do
         "Errors:"
         forM_ (Map.toList $ _modelErrors model) $ \(fp, err) ->
           H.div $ H.toHtml $ show @Text fp <> ": " <> show err
-
-newFileCli :: NodeID -> Text
-newFileCli (show -> nid) =
-  [text|
-    echo "---\ndate: $(date -u +'%Y-%m-%dT%H:%M:%S')\n---\n\n" >${nid}.md; cat >>${nid}.md
-  |]

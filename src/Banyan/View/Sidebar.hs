@@ -8,6 +8,7 @@ import Banyan.Route
 import Banyan.View.Common
 import Control.Lens.Operators ((^.))
 import Data.Tree (Tree (Node))
+import qualified Data.Tree as Tree
 import Text.Blaze.Html5 ((!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -26,7 +27,8 @@ renderNode model hereR (Node nid children) = do
   H.div ! A.class_ "pl-2" $ do
     nodeLink model hereR nid
     H.div $ do
-      forM_ children $ \node ->
+      let childNodes = sortOn (fmap fst . flip modelLookup model . Tree.rootLabel) children
+      forM_ childNodes $ \node ->
         renderNode model hereR node
 
 nodeLink :: Model -> Route -> NodeID -> H.Html

@@ -28,7 +28,8 @@ Right now,
 - [x] Parse and render Markdown
 - [ ] Tree structure...
   - [x] Parse `graph.dot`
-  - [x] HTML for tree breadcrumbs 
+  - [x] Sidebar
+  - [ ] Breadcrumb instead of title
   - [ ] HTML for child listing and count
     - Supress leave nodes from sidebar listing 
 - [ ] Nice HTML and publish
