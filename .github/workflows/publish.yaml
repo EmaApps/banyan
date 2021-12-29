@@ -1,11 +1,11 @@
 name: "Publish site"
 on:
   # Run only when pushing to master branch
-  #push:
-  #  branches:
-  #  - master
+  push:
+    branches:
+    - master
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -18,14 +18,36 @@ jobs:
       - name: Build sources 🔧
         run: |
           nix build
-      - name: Generate HTML 🔧
+      - name: Build as docker img
+        id: build
         run: |
-          mkdir ./output
-          export TARGET=$(pwd)/output
-          cd ./content
-          ../result/bin/banyan gen $TARGET
-      - name: Deploy to gh-pages 🚀
-        uses: peaceiris/actions-gh-pages@v3
+          nix-build -j auto docker.nix --argstr tag latest -o docker-img
+          # docker
+          export DOCKERIMG=$(readlink ./docker-img)
+          echo "::set-output name=docker-img::${DOCKERIMG}"
+      - name: Upload docker image tgz
+        uses: actions/upload-artifact@v2
+        if: github.ref == 'refs/heads/master'
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: output
+          name: docker-img
+          retention-days: 1
+          path: |
+            ${{ steps.build.outputs.docker-img }}
+
+  docker:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    env:
+      DOCKERTAG: latest
+    steps:
+      - name: Download docker img
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-img
+      - name: Build & Publish Docker image to Docker Hub
+        run: |
+          docker load -i *docker-image-banyon.tar.gz
+          echo ${{ secrets.DOCKER_PASS }} | docker login -u sridca --password-stdin
+          set -x
+          docker push sridca/banyon:latest
