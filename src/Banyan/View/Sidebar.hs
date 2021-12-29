@@ -1,0 +1,42 @@
+module Banyan.View.Sidebar where
+
+import qualified Banyan.Graph as G
+import Banyan.ID (NodeID)
+import qualified Banyan.Markdown as Markdown
+import Banyan.Model
+import Banyan.Route
+import Banyan.View.Common
+import Control.Lens.Operators ((^.))
+import Data.Tree (Tree (Node))
+import Text.Blaze.Html5 ((!))
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
+
+renderSidebar :: Model -> Route -> H.Html
+renderSidebar model hereR =
+  H.div ! A.class_ "border-r-2 md:h-full pr-2 mr-2" $ do
+    let forest = G.toTree $ model ^. modelGraph
+    routeElemUnlessHere model hereR (Right RIndex) "Index"
+    H.div ! A.class_ "font-mono" $ do
+      forM_ forest $ \node ->
+        renderNode model hereR node
+
+renderNode :: Model -> Route -> Tree G.NodeID -> H.Html
+renderNode model hereR (Node nid children) = do
+  H.div ! A.class_ "pl-2" $ do
+    nodeLink model hereR nid
+    H.div $ do
+      forM_ children $ \node ->
+        renderNode model hereR node
+
+nodeLink :: Model -> Route -> NodeID -> H.Html
+nodeLink model hereR nid =
+  case modelLookup nid model of
+    Nothing -> "error: no such node"
+    Just (mMeta, _pandoc) -> do
+      let nodeTitle = fromMaybe (show nid) $ Markdown.title =<< mMeta
+      routeElemUnlessHere model hereR (nodeRoute nid) $ do
+        H.toHtml nodeTitle
+
+nodeRoute :: NodeID -> Either FilePath Route
+nodeRoute = Right . RNode

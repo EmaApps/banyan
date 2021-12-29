@@ -89,3 +89,5 @@ executable banyan
     Banyan.Model.Patch
     Banyan.Route
     Banyan.View
+    Banyan.View.Common
+    Banyan.View.Sidebar

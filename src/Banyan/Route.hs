@@ -9,7 +9,7 @@ import Ema (Ema (..))
 data Route
   = RIndex
   | RNode NodeID
-  deriving (Show)
+  deriving (Show, Eq, Ord)
 
 instance Ema Model (Either FilePath Route) where
   encodeRoute _model =

@@ -28,7 +28,9 @@ Right now,
 - [x] Parse and render Markdown
 - [ ] Tree structure...
   - [x] Parse `graph.dot`
-  - [ ] HTML for tree breadcrumbs & children
+  - [x] HTML for tree breadcrumbs 
+  - [ ] HTML for child listing and count
+    - Supress leave nodes from sidebar listing 
 - [ ] Nice HTML and publish
   - [ ] Docker image
   - [ ] Build `./content` using Docker image
@@ -44,9 +46,10 @@ bin/run
       1. Filesystem hierarchy
         - Too complex to deal with
       1. YAML metadata `parent` in each ${node}.md
-        - Organizing nodes en masses involves fiddling with multiple files
+        - Organizing nodes en masse involves fiddling with multiple files
       1. Separate file, eg: [DOT](https://www.graphviz.org/doc/info/lang.html), for graphs
         - Automatically allows multi-parent nodes
           - Visually, we present one parent, while demoting others.
         - Organizing nodes en masse is easier 
+        - Possibility to add relationship [metadata](https://graphviz.org/docs/attrs/xlabel/)
 
