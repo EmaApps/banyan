@@ -4,12 +4,13 @@
 
 module Banyan.View where
 
+import qualified Banyan.Graph as G
 import Banyan.ID (NodeID)
 import qualified Banyan.Markdown as Markdown
 import Banyan.Model
 import Banyan.Route
-import Banyan.View.Common
 import qualified Banyan.View.Sidebar as Sidebar
+import Control.Lens.Operators ((^.))
 import qualified Data.Map.Strict as Map
 import qualified Ema.CLI
 import qualified Ema.Helper.Tailwind as Tailwind
@@ -27,16 +28,32 @@ renderHtml emaAction model r =
       (Sidebar.renderSidebar model r)
       $ case r of
         RIndex -> do
-          "Every node: "
-          forM_ (Map.keys $ _modelNodes model) $ \uuid ->
-            H.li $ H.code $ routeElem model (Right $ RNode uuid) $ show uuid
+          "Check the sidebar"
         RNode nid -> do
           case modelLookup nid model of
             Nothing -> "Not found"
             Just (mMeta, pandoc) -> do
               -- TODO: this should be a breadcrumb
-              H.header ! A.class_ "text-2xl font-bold" $ show nid
+              let nodeTitle = fromMaybe (show nid) $ Markdown.title =<< mMeta
+              H.header ! A.class_ "text-2xl font-bold" $ H.toHtml nodeTitle
               H.div ! A.class_ "my-2" $ Markdown.renderPandoc pandoc
+              let childNodes' = G.getDescendents nid $ model ^. modelGraph
+                  -- TODO: DRY with sidebar
+                  childNodes = sortOn (fmap fst . flip modelLookup model) childNodes'
+              forM_ childNodes $ \node ->
+                H.div $ do
+                  case modelLookup node model of
+                    Nothing -> do
+                      "missing!"
+                      show node
+                    Just (childMMeta, childPandoc) -> do
+                      H.div $ do
+                        let childTitle = fromMaybe (show node) $ Markdown.title =<< childMMeta
+                        H.strong $ H.toHtml childTitle
+                        " / "
+                        let nodeDate = maybe "No date" show $ Markdown.date =<< childMMeta
+                        H.toHtml @Text nodeDate
+                      Markdown.renderPandoc childPandoc
               H.div ! A.class_ "font-mono text-xs text-gray-400 mt-8" $ H.toHtml $ show @Text mMeta
 
 topbar :: Model -> H.Html

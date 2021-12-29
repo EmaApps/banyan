@@ -30,7 +30,7 @@ Right now,
   - [x] Parse `graph.dot`
   - [x] Sidebar
   - [ ] Breadcrumb instead of title
-  - [ ] HTML for child listing and count
+  - [x] HTML for child listing and count
     - Supress leave nodes from sidebar listing 
 - [ ] Nice HTML and publish
   - [ ] Docker image

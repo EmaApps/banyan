@@ -23,6 +23,10 @@ buildGraph (Digraph _ es) =
 toTree :: AM.AdjacencyMap NodeID -> Forest NodeID
 toTree = AM.dfsForest
 
+getDescendents :: NodeID -> AM.AdjacencyMap NodeID -> [NodeID]
+getDescendents nid g =
+  toList $ AM.postSet nid g
+
 type Parser = M.Parsec Void Text
 
 parseDot :: Text -> Either Text Dot

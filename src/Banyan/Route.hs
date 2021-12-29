@@ -24,5 +24,6 @@ instance Ema Model (Either FilePath Route) where
       absPath <- Map.lookup fp (model ^. modelFiles)
       pure $ Left absPath
   allRoutes m =
+    -- TODO: Don't generate pages for leaf nodes (they are not linked to)
     (Right <$> RIndex : (RNode <$> Map.keys (m ^. modelNodes)))
       <> fmap Left (Map.keys $ m ^. modelFiles)

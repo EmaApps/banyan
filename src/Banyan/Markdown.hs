@@ -1,5 +1,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Banyan.Markdown
@@ -24,8 +26,8 @@ import Text.Pandoc.Definition (Pandoc (Pandoc))
 import qualified Text.Pandoc.Definition as B
 
 -- | Creation time in UTC.
-newtype CreatedTime = CreatedTime {unCreatedTime :: UTCTime}
-  deriving (Show, Eq, Ord)
+newtype CreatedTime = CreatedTime UTCTime
+  deriving newtype (Show, Eq, Ord)
 
 data Meta = Meta
   { title :: Maybe Text,

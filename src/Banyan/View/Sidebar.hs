@@ -24,12 +24,13 @@ renderSidebar model hereR =
 
 renderNode :: Model -> Route -> Tree G.NodeID -> H.Html
 renderNode model hereR (Node nid children) = do
-  H.div ! A.class_ "pl-2" $ do
-    nodeLink model hereR nid
-    H.div $ do
-      let childNodes = sortOn (fmap fst . flip modelLookup model . Tree.rootLabel) children
-      forM_ childNodes $ \node ->
-        renderNode model hereR node
+  whenNotNull children $ \_ -> do
+    H.div ! A.class_ "pl-2" $ do
+      nodeLink model hereR nid
+      H.div $ do
+        let childNodes = sortOn (fmap fst . flip modelLookup model . Tree.rootLabel) children
+        forM_ childNodes $ \node ->
+          renderNode model hereR node
 
 nodeLink :: Model -> Route -> NodeID -> H.Html
 nodeLink model hereR nid =
