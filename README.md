@@ -53,9 +53,10 @@ Compensating for lack of interactive web client:
 - Features to 'map' to Ema-workflow
   - [ ] Quick-view of posts
     - Run prod Banyan as daemon locally; and pin 'chrome app'
-      - [ ] nix-darwin & `launchd`
-  - [ ] Quick-post or Quick-edit under a card
-    - [ ] The newfile cli for new/edit can change depending on route
+      - [x] nix-darwin & `launchd`
+    - [ ] Test it on private banyan
+  - [x] Quick-post or Quick-edit under a card
+    - [x] The newfile cli for new/edit can change depending on route
       - [x] Replace graph.dot with YAML parent specification. Makes it easy to create one-run CLI for adding child nodes.
     - [x] "One-click" modifications: Have browser open text editor?
   - [ ] Rich-text copy-paste (eg: AFT to WOC)

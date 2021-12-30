@@ -24,7 +24,7 @@ renderHtml emaAction model r =
   Tailwind.layout emaAction (H.title "Banyan" >> H.base ! A.href "/" >> H.link ! A.rel "shortcut icon" ! A.href "banyan.svg" ! A.type_ "image/svg") $
     renderLayout
       model
-      (topbar model)
+      (topbar model r)
       (Sidebar.renderSidebar model r)
       $ case r of
         RIndex -> do
@@ -69,15 +69,21 @@ editLink Ema.CLI.Run model nid =
 editLink _ _ _ =
   mempty
 
-topbar :: Model -> H.Html
-topbar model =
+topbar :: Model -> Route -> H.Html
+topbar model r =
   H.pre ! A.class_ "overflow-auto py-2" $ do
-    H.toHtml $ newFileCli $ _modelNextID model
+    H.toHtml $
+      newFileCli (_modelNextID model) $ case r of
+        RIndex -> Nothing
+        RNode nid -> Just nid
   where
-    newFileCli :: NodeID -> Text
-    newFileCli (show -> nid) =
-      [text|
-        echo "---\ndate: $(date -u +'%Y-%m-%dT%H:%M:%S')\n---\n\n" >${nid}.md; cat >>${nid}.md
+    -- CLI for creating a new node, optionally under the given parent.
+    newFileCli :: NodeID -> Maybe NodeID -> Text
+    newFileCli (show -> nid) mPid =
+      -- If there is parent node, inject `parent: ...` property into YAML header.
+      let pidS :: Text = maybe "\\n" (\pid -> "\\nparent: " <> show pid) mPid
+       in [text|
+        echo "---\ndate: $(date -u +'%Y-%m-%dT%H:%M:%S')${pidS}\n---\n\n" >${nid}.md; cat >>${nid}.md
       |]
 
 renderLayout :: Model -> H.Html -> H.Html -> H.Html -> H.Html
