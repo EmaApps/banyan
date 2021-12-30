@@ -6,9 +6,10 @@ import qualified Algebra.Graph.AdjacencyMap as AM
 import Banyan.ID (NodeID, randomId)
 import Banyan.Markdown (Meta, Pandoc)
 import Control.Lens.Combinators (view)
-import Control.Lens.Operators ((%~), (.~))
+import Control.Lens.Operators ((%~), (.~), (^.))
 import Control.Lens.TH (makeLenses)
 import qualified Data.Map.Strict as Map
+import System.FilePath ((-<.>), (</>))
 
 type Node = (Maybe Meta, Pandoc)
 
@@ -16,7 +17,8 @@ data Error = BadGraph Text | BadMarkdown Text
   deriving (Show, Eq, Ord)
 
 data Model = Model
-  { _modelNodes :: Map NodeID Node,
+  { _modelBaseDir :: FilePath,
+    _modelNodes :: Map NodeID Node,
     _modelGraph :: AM.AdjacencyMap NodeID,
     _modelFiles :: Map FilePath FilePath,
     _modelNextID :: NodeID,
@@ -24,12 +26,13 @@ data Model = Model
   }
   deriving (Show)
 
-emptyModel :: MonadIO m => m Model
-emptyModel = do
+emptyModel :: MonadIO m => FilePath -> m Model
+emptyModel baseDir = do
   rid <- randomId
   pure $
     Model
-      { _modelNodes = Map.empty,
+      { _modelBaseDir = baseDir,
+        _modelNodes = Map.empty,
         _modelGraph = AM.empty,
         _modelFiles = Map.empty,
         _modelNextID = rid,
@@ -76,3 +79,13 @@ modelAddError fp e =
 modelClearError :: FilePath -> Model -> Model
 modelClearError fp =
   modelErrors %~ Map.delete fp
+
+-- | Path to the local Markdown file for a given NodeID.
+modelNodePath :: NodeID -> Model -> FilePath
+modelNodePath nid model =
+  let fn = show nid -<.> ".md"
+   in (model ^. modelBaseDir) </> fn
+
+modelNodeEditUrlVSCode :: NodeID -> Model -> Text
+modelNodeEditUrlVSCode nid model =
+  "vscode://file" <> toText (modelNodePath nid model)

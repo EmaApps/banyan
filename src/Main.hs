@@ -11,6 +11,7 @@ import qualified Ema
 import qualified Ema.CLI
 import qualified Emanote
 import qualified Emanote.Source.Loc as Loc
+import System.Directory (makeAbsolute)
 import qualified System.Environment as Env
 import qualified Test.Tasty as T
 
@@ -27,11 +28,14 @@ spec =
     [ ID.spec
     ]
 
+contentDir :: FilePath
+contentDir = "content"
+
 exe :: IO ()
 exe =
   Ema.runEma render $ \_act model -> do
-    let layers = Loc.userLayers (one "content")
-    model0 <- Model.emptyModel
+    let layers = Loc.userLayers (one contentDir)
+    model0 <- Model.emptyModel =<< liftIO (makeAbsolute contentDir)
     Emanote.emanate
       layers
       Patch.watching

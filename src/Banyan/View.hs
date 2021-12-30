@@ -36,7 +36,9 @@ renderHtml emaAction model r =
               -- TODO: this should be a breadcrumb
               let nodeTitle = fromMaybe (show nid) $ Markdown.title =<< mMeta
               H.header ! A.class_ "text-2xl font-bold" $ H.toHtml nodeTitle
-              H.div ! A.class_ "my-2" $ Markdown.renderPandoc pandoc
+              H.div ! A.class_ "my-2" $ do
+                Markdown.renderPandoc pandoc
+                H.a ! A.class_ "bg-blue-400 text-sm text-white p-1 my-2" ! A.href (H.toValue $ modelNodeEditUrlVSCode nid model) $ "Edit in VS Code"
               let childNodes' = G.getDescendents nid $ model ^. modelGraph
                   -- TODO: DRY with sidebar
                   childNodes = sortOn (fmap fst . flip modelLookup model) childNodes'
@@ -55,6 +57,7 @@ renderHtml emaAction model r =
                           let nodeDate = maybe "No date" show $ Markdown.date =<< childMMeta
                           H.toHtml @Text nodeDate
                         Markdown.renderPandoc childPandoc
+                        H.a ! A.class_ "bg-blue-400 text-sm text-white p-1 my-2" ! A.href (H.toValue $ modelNodeEditUrlVSCode node model) $ "Edit in VS Code"
               H.div ! A.class_ "font-mono text-xs text-gray-400 mt-8" $ H.toHtml $ show @Text mMeta
 
 topbar :: Model -> H.Html

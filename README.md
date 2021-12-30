@@ -48,6 +48,18 @@ Right now,
   - [ ] Build `./content` using Docker image
   - [ ] Or: run websocket server in DigitalOcean with syncthing
 
+Compensating for lack of interactive web client:
+
+- Features to 'map' to Ema-workflow
+  - [ ] Quick-view of posts
+    - Run prod Banyan as daemon locally; and pin 'chrome app'
+  - [ ] Quick-post or Quick-edit under a card
+    - [ ] The newfile cli for new/edit can change depending on route
+      - [ ] Replace graph.dot with YAML parent specification. Makes it easy to create one-run CLI for adding child nodes.
+    - [x] "One-click" modifications: Have browser open text editor?
+  - [ ] Rich-text copy-paste (eg: AFT to WOC)
+- Add these 'patterns' to Ema guide.
+
 [^relbrain]: File-format brainstorming:
     - How to represent relationships? Candidates:
       1. Filesystem hierarchy
