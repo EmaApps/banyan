@@ -1,5 +1,6 @@
 ---
 date: 2021-12-29T00:56:28
+parent: dKuTgZ1YJfcoB
 ---
 
 There are two ways to deploy Banyon sites: 

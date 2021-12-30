@@ -1,6 +1,6 @@
 module Banyan.Route where
 
-import Banyan.ID (NodeID, parseUUIDFileName)
+import Banyan.ID (NodeID, parseIDFileName)
 import Banyan.Model
 import Control.Lens.Operators ((^.))
 import qualified Data.Map.Strict as Map
@@ -18,7 +18,7 @@ instance Ema Model (Either FilePath Route) where
       RNode uuid -> show uuid <> ".html"
   decodeRoute model = \case
     "index.html" -> Just $ Right RIndex
-    (parseUUIDFileName ".html" -> Just uuid) ->
+    (parseIDFileName ".html" -> Just uuid) ->
       Right (RNode uuid) <$ modelLookup uuid model
     fp -> do
       absPath <- Map.lookup fp (model ^. modelFiles)

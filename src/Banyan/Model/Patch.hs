@@ -1,20 +1,17 @@
 module Banyan.Model.Patch where
 
-import qualified Algebra.Graph.AdjacencyMap as AM
-import qualified Banyan.Graph as G
-import Banyan.ID (parseUUIDFileName)
+import Banyan.ID (parseIDFileName)
 import qualified Banyan.Markdown as Markdown
 import Banyan.Model
 import qualified Ema.Helper.FileSystem as EmaFS
 import System.FilePattern (FilePattern)
 
-data FileType = FTMd | FTDot | FTStatic
+data FileType = FTMd | FTStatic
   deriving (Eq, Show, Ord)
 
 watching :: [(FileType, FilePattern)]
 watching =
-  [ (FTDot, "*.dot"),
-    (FTMd, "*.md"),
+  [ (FTMd, "*.md"),
     (FTStatic, "*")
   ]
 
@@ -34,18 +31,8 @@ patchModel ::
 patchModel ftype fp action =
   fmap (maybe id (. modelClearError fp)) . runMaybeT $ do
     case ftype of
-      FTDot -> case action of
-        EmaFS.Delete ->
-          pure $ modelSetGraph AM.empty
-        EmaFS.Refresh _ absPath -> do
-          s <- liftIO $ readFileText absPath
-          pure $
-            G.parseDot s
-              & either
-                (modelAddError fp . BadGraph)
-                (modelSetGraph . G.buildGraph)
       FTMd -> do
-        uuid <- hoistMaybe $ parseUUIDFileName ".md" fp
+        uuid <- hoistMaybe $ parseIDFileName ".md" fp
         -- Reset the next id, because a .md file may have been added (or
         -- deleted).  Ideally we should do this only on additions (and possibly
         -- on deletion), and not no modifications.

@@ -12,6 +12,7 @@ module Banyan.Markdown
   )
 where
 
+import Banyan.ID
 import Control.Exception (throw)
 import Data.Aeson (FromJSON (parseJSON))
 import Data.Default (Default (..))
@@ -31,7 +32,8 @@ newtype CreatedTime = CreatedTime UTCTime
 
 data Meta = Meta
   { title :: Maybe Text,
-    date :: Maybe CreatedTime
+    date :: Maybe CreatedTime,
+    parent :: Maybe NodeID
   }
   deriving (Show, Generic, Eq, FromJSON)
 
@@ -49,7 +51,7 @@ parseCreatedTime s = do
     dateFormat = "%Y-%m-%dT%H:%M:%S"
 
 instance Default Meta where
-  def = Meta Nothing Nothing
+  def = Meta Nothing Nothing Nothing
 
 parseMarkdown :: MonadIO m => FilePath -> m (Either Text (Maybe Meta, Pandoc))
 parseMarkdown fp = do

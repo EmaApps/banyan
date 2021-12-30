@@ -38,7 +38,7 @@ renderHtml emaAction model r =
               H.header ! A.class_ "text-2xl font-bold" $ H.toHtml nodeTitle
               H.div ! A.class_ "my-2" $ do
                 Markdown.renderPandoc pandoc
-                H.a ! A.class_ "bg-blue-400 text-sm text-white p-1 my-2" ! A.href (H.toValue $ modelNodeEditUrlVSCode nid model) $ "Edit in VS Code"
+                editLink emaAction model nid
               let childNodes' = G.getDescendents nid $ model ^. modelGraph
                   -- TODO: DRY with sidebar
                   childNodes = sortOn (fmap fst . flip modelLookup model) childNodes'
@@ -57,8 +57,17 @@ renderHtml emaAction model r =
                           let nodeDate = maybe "No date" show $ Markdown.date =<< childMMeta
                           H.toHtml @Text nodeDate
                         Markdown.renderPandoc childPandoc
-                        H.a ! A.class_ "bg-blue-400 text-sm text-white p-1 my-2" ! A.href (H.toValue $ modelNodeEditUrlVSCode node model) $ "Edit in VS Code"
+                        editLink emaAction model node
               H.div ! A.class_ "font-mono text-xs text-gray-400 mt-8" $ H.toHtml $ show @Text mMeta
+
+editLink :: Ema.CLI.Action -> Model -> NodeID -> H.Html
+editLink Ema.CLI.Run model nid =
+  H.a
+    ! A.class_ "bg-blue-400 text-sm text-white p-1 my-2"
+    ! A.href (H.toValue $ modelNodeEditUrlVSCode nid model)
+    $ "Edit in VS Code"
+editLink _ _ _ =
+  mempty
 
 topbar :: Model -> H.Html
 topbar model =

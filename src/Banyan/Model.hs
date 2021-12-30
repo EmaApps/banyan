@@ -1,10 +1,12 @@
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Banyan.Model where
 
 import qualified Algebra.Graph.AdjacencyMap as AM
+import qualified Banyan.Graph as G
 import Banyan.ID (NodeID, randomId)
-import Banyan.Markdown (Meta, Pandoc)
+import Banyan.Markdown (Meta (..), Pandoc)
 import Control.Lens.Combinators (view)
 import Control.Lens.Operators ((%~), (.~), (^.))
 import Control.Lens.TH (makeLenses)
@@ -42,12 +44,22 @@ emptyModel baseDir = do
 makeLenses ''Model
 
 modelDel :: NodeID -> Model -> Model
-modelDel fp =
-  modelNodes %~ Map.delete fp
+modelDel nid =
+  modelNodes
+    %~ Map.delete nid
+    >>> modelGraph
+    %~ G.removeNode nid
 
 modelAdd :: NodeID -> Node -> Model -> Model
-modelAdd fp s =
-  modelNodes %~ Map.insert fp s
+modelAdd nid node =
+  modelNodes
+    %~ Map.insert nid node
+    >>> modelGraph
+    %~ G.addNodeWithParent nid mParent
+  where
+    mParent = do
+      Meta {..} <- fst node
+      parent
 
 modelLookup :: NodeID -> Model -> Maybe Node
 modelLookup k =
@@ -59,7 +71,8 @@ modelAddFile fp absPath =
 
 modelDelFile :: FilePath -> Model -> Model
 modelDelFile fp =
-  modelFiles %~ Map.delete fp
+  modelFiles
+    %~ Map.delete fp
 
 modelResetNextID :: (MonadIO m, HasCallStack) => m (Model -> Model)
 modelResetNextID = do
@@ -67,10 +80,6 @@ modelResetNextID = do
   pure $ \model -> case modelLookup rid model of
     Just _ -> error $ "NanoID collision: " <> show rid
     Nothing -> model & modelNextID .~ rid
-
-modelSetGraph :: AM.AdjacencyMap NodeID -> Model -> Model
-modelSetGraph g =
-  modelGraph .~ g
 
 modelAddError :: FilePath -> Error -> Model -> Model
 modelAddError fp e =

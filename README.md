@@ -24,7 +24,7 @@ Design:
 - "Next ID" is displayed as CLI to create new files in all pages. We could improve the workflow further here.
 - File-format 
   - `.md` files for nodes
-  - Tree relationships are defined in `graph.dot` file[^relbrain].
+  - Tree relationships are defined in YAML `parent` key.[^relbrain].
 
 Todo:
 
@@ -53,9 +53,10 @@ Compensating for lack of interactive web client:
 - Features to 'map' to Ema-workflow
   - [ ] Quick-view of posts
     - Run prod Banyan as daemon locally; and pin 'chrome app'
+      - [ ] nix-darwin & `launchd`
   - [ ] Quick-post or Quick-edit under a card
     - [ ] The newfile cli for new/edit can change depending on route
-      - [ ] Replace graph.dot with YAML parent specification. Makes it easy to create one-run CLI for adding child nodes.
+      - [x] Replace graph.dot with YAML parent specification. Makes it easy to create one-run CLI for adding child nodes.
     - [x] "One-click" modifications: Have browser open text editor?
   - [ ] Rich-text copy-paste (eg: AFT to WOC)
 - Add these 'patterns' to Ema guide.

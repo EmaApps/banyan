@@ -20,8 +20,8 @@ randomId = do
     then randomId -- Avoid IDs beginning with numerals (have to be quoted in DOT)
     else pure rid
 
-parseUUIDFileName :: String -> FilePath -> Maybe NodeID
-parseUUIDFileName ext fp = do
+parseIDFileName :: String -> FilePath -> Maybe NodeID
+parseIDFileName ext fp = do
   let (toText -> baseName, fpExt) = splitExtension fp
   guard $ ext == fpExt
   guard $ not $ "/" `T.isInfixOf` baseName
