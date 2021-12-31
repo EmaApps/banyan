@@ -2,7 +2,7 @@
 
 WIP: Tree of time. 
 
-Like [Wind of change](https://windofchange.me), but using the tree model, and as a static site -- so there is no social aspect, for which you should still use WOC. I probably will begin using banyan primarily, and then cross-post its content to WOC for enabling discussions.
+Like [Wind of change](https://windofchange.me), but using the tree model, and as a static site -- so there is no social aspect, for which you should still use WOC. I probably will begin using banyan primarily, and then cross-post its content to WOC for enabling discussions (until WOC gets tree model as well as exports).
 
 ## Developing
 
@@ -59,7 +59,11 @@ Compensating for lack of interactive web client:
     - [x] The newfile cli for new/edit can change depending on route
       - [x] Replace graph.dot with YAML parent specification. Makes it easy to create one-run CLI for adding child nodes.
     - [x] "One-click" modifications: Have browser open text editor?
+    - Custom URI handler for creating new posts: https://developer.apple.com/documentation/xcode/defining-a-custom-url-scheme-for-your-app
+      - [ ] Even better, as VSCode extension: https://code.visualstudio.com/api/advanced-topics/remote-extensions#callbacks-and-uri-handlers
   - [ ] Rich-text copy-paste (eg: AFT to WOC)
+    - Use 'copy as markdown' or 'paste as markdown'?
+    - https://euangoddard.github.io/clipboard2markdown/
 - Add these 'patterns' to Ema guide.
 
 [^relbrain]: File-format brainstorming:
@@ -67,10 +71,11 @@ Compensating for lack of interactive web client:
       1. Filesystem hierarchy
         - Too complex to deal with
       1. YAML metadata `parent` in each ${node}.md
+        - Adding new nodes is single-file write operation
         - Organizing nodes en masse involves fiddling with multiple files
       1. Separate file, eg: [DOT](https://www.graphviz.org/doc/info/lang.html), for graphs
         - Automatically allows multi-parent nodes
           - Visually, we present one parent, while demoting others.
-        - Organizing nodes en masse is easier 
+        - Organizing nodes *en masse* is easier 
         - Possibility to add relationship [metadata](https://graphviz.org/docs/attrs/xlabel/)
 
