@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Banyan.View where
@@ -9,15 +7,16 @@ import Banyan.ID (NodeID)
 import qualified Banyan.Markdown as Markdown
 import Banyan.Model
 import Banyan.Route
+import qualified Banyan.VSCode as VSCode
 import qualified Banyan.View.Sidebar as Sidebar
 import Control.Lens.Operators ((^.))
 import qualified Data.Map.Strict as Map
 import qualified Ema.CLI
 import qualified Ema.Helper.Tailwind as Tailwind
-import NeatInterpolation (text)
 import Text.Blaze.Html5 ((!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
+import qualified Text.URI as URI
 
 renderHtml :: Ema.CLI.Action -> Model -> Route -> LByteString
 renderHtml emaAction model r =
@@ -71,16 +70,14 @@ editLink _ _ _ =
 
 topbar :: Model -> Route -> H.Html
 topbar model r = do
-  let uri :: Text =
-        "vscode://srid.banyan/new/" <> show (_modelNextID model)
-          <> ( case r of
-                 RIndex -> ""
-                 RNode pid -> "?parent=" <> show pid
-             )
+  let mParent = case r of
+        RNode nid -> Just nid
+        _ -> Nothing
+      uri = VSCode.mkUri $ VSCode.NewNode (model ^. modelNextID) mParent
   H.a
     ! A.class_ "bg-blue-400 text-sm text-white p-1 my-2"
     ! A.title (show $ _modelNextID model)
-    ! A.href (H.toValue uri)
+    ! A.href (H.toValue $ URI.render uri)
     $ "New in VS Code"
 
 renderLayout :: Model -> H.Html -> H.Html -> H.Html -> H.Html

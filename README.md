@@ -60,7 +60,8 @@ Compensating for lack of interactive web client:
       - [x] Replace graph.dot with YAML parent specification. Makes it easy to create one-run CLI for adding child nodes.
     - [x] "One-click" modifications: Have browser open text editor?
     - Custom URI handler for creating new posts: https://developer.apple.com/documentation/xcode/defining-a-custom-url-scheme-for-your-app
-      - [ ] Even better, as VSCode extension: https://code.visualstudio.com/api/advanced-topics/remote-extensions#callbacks-and-uri-handlers
+      - [x] Even better, as VSCode extension: https://code.visualstudio.com/api/advanced-topics/remote-extensions#callbacks-and-uri-handlers
+      - [ ] Include base url in URI
   - [ ] Rich-text copy-paste (eg: AFT to WOC)
     - Use 'copy as markdown' or 'paste as markdown'?
     - https://euangoddard.github.io/clipboard2markdown/
