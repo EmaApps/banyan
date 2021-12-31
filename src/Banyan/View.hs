@@ -3,7 +3,6 @@
 module Banyan.View where
 
 import qualified Banyan.Graph as G
-import Banyan.ID (NodeID)
 import qualified Banyan.Markdown as Markdown
 import Banyan.Model
 import Banyan.Route
@@ -16,14 +15,13 @@ import qualified Ema.Helper.Tailwind as Tailwind
 import Text.Blaze.Html5 ((!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
-import qualified Text.URI as URI
 
 renderHtml :: Ema.CLI.Action -> Model -> Route -> LByteString
 renderHtml emaAction model r =
   Tailwind.layout emaAction (H.title "Banyan" >> H.base ! A.href "/" >> H.link ! A.rel "shortcut icon" ! A.href "banyan.svg" ! A.type_ "image/svg") $
     renderLayout
       model
-      (topbar model r)
+      (VSCode.renderVSCodeAction $ VSCode.NewNode (model ^. modelNextID) routeNid)
       (Sidebar.renderSidebar model r)
       $ case r of
         RIndex -> do
@@ -37,7 +35,7 @@ renderHtml emaAction model r =
               H.header ! A.class_ "text-2xl font-bold" $ H.toHtml nodeTitle
               H.div ! A.class_ "my-2" $ do
                 Markdown.renderPandoc pandoc
-                editLink emaAction model nid
+                VSCode.renderVSCodeAction $ VSCode.EditNode nid
               let childNodes' = G.getDescendents nid $ model ^. modelGraph
                   -- TODO: DRY with sidebar
                   childNodes = sortOn (fmap fst . flip modelLookup model) childNodes'
@@ -56,29 +54,12 @@ renderHtml emaAction model r =
                           let nodeDate = maybe "No date" show $ Markdown.date =<< childMMeta
                           H.toHtml @Text nodeDate
                         Markdown.renderPandoc childPandoc
-                        editLink emaAction model node
+                        VSCode.renderVSCodeAction $ VSCode.EditNode node
               H.div ! A.class_ "font-mono text-xs text-gray-400 mt-8" $ H.toHtml $ show @Text mMeta
-
-editLink :: Ema.CLI.Action -> Model -> NodeID -> H.Html
-editLink Ema.CLI.Run model nid =
-  H.a
-    ! A.class_ "bg-blue-400 text-sm text-white p-1 my-2"
-    ! A.href (H.toValue $ modelNodeEditUrlVSCode nid model)
-    $ "Edit in VS Code"
-editLink _ _ _ =
-  mempty
-
-topbar :: Model -> Route -> H.Html
-topbar model r = do
-  let mParent = case r of
-        RNode nid -> Just nid
-        _ -> Nothing
-      uri = VSCode.mkUri $ VSCode.NewNode (model ^. modelNextID) mParent
-  H.a
-    ! A.class_ "bg-blue-400 text-sm text-white p-1 my-2"
-    ! A.title (show $ _modelNextID model)
-    ! A.href (H.toValue $ URI.render uri)
-    $ "New in VS Code"
+  where
+    routeNid = case r of
+      RIndex -> Nothing
+      RNode nid -> Just nid
 
 renderLayout :: Model -> H.Html -> H.Html -> H.Html -> H.Html
 renderLayout model top sidebar main = do

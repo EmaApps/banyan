@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 import * as O from 'fp-ts/Option';
 import { pipe } from 'fp-ts/function';
-let fs = require("fs");
+import * as fs from 'fs';
 var dedent = require('dedent-js');
 
 // Hardcoding for now.
@@ -26,22 +26,41 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('Hello Srid!');
 	}));
 
-	function newNode(fp: String, contents: string) {
+	function nodePath(nid: String) {
+		return banyanDir + "/" + nid + ".md";
+	}
+
+	function editNode(nid: String) {
+		let path = nodePath(nid);
+		vscode.window.showInformationMessage("Opening " + path);
+		vscode.commands.executeCommand('vscode.open', vscode.Uri.file(path));
+	}
+
+	function newNode(nid: String, contents: string) {
 		vscode.window.showInformationMessage(contents);
-		let path = banyanDir + "/" + fp + ".md";
-		fs.writeFile(path, contents, (err: object) => {
-			if (err) {
-				vscode.window.showErrorMessage(err.toString());
+		let path = nodePath(nid);
+		fs.stat(path, (err, _stats) => {
+			if (err !== null) {
+				vscode.window.showErrorMessage("File already exists: " + path);
 			} else {
-				vscode.window.showInformationMessage(path);
-				vscode.commands.executeCommand('vscode.open', vscode.Uri.file(path));
-			}
+				fs.writeFile(path, contents, (err) => {
+					if (err) {
+						vscode.window.showErrorMessage(err.toString());
+					} else {
+						editNode(nid);
+					}
+				});
+			};
 		});
+
 	};
 
 	function mdTemplate(mParent: O.Option<string>) {
 		let dt = new Date().toISOString();
-		let parentS = pipe(mParent, O.match(() => ``, parent => `parent: ${parent}\n`));
+		let parentS = pipe(
+			mParent,
+			O.match(() => ``, parent => `parent: ${parent}\n`)
+		);
 		return dedent(`---
 						date: ${dt}
 						${parentS}---
@@ -54,14 +73,16 @@ export function activate(context: vscode.ExtensionContext) {
 		handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
 			// Add your code for what to do when the authentication completes here.
 			vscode.window.showInformationMessage(uri.toString());
-			// TODO:  distinguish new vs edit
-			let [_empty, _new, fp] = uri.path.split("/");
-			let dt = new Date().toISOString();
-			let queries = uri.query.split('&');
-			if (queries.length > 0) {
-				let [k, v] = queries[0].split('=');
-				let mParent = (k === "parent") ? O.some(v) : O.none;
-				newNode(fp, mdTemplate(mParent));
+			let [_scheme, action, nid] = uri.path.split("/");
+			if (action === "new") {
+				let queries = uri.query.split('&');
+				if (queries.length > 0) {
+					let [k, v] = queries[0].split('=');
+					let mParent = (k === "parent") ? O.some(v) : O.none;
+					newNode(nid, mdTemplate(mParent));
+				};
+			} else if (action === "edit") {
+				editNode(nid);
 			};
 		}
 	}));
