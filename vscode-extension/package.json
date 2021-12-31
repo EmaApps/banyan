@@ -19,7 +19,7 @@
     "commands": [
       {
         "command": "banyan.helloWorld",
-        "title": "Hello World"
+        "title": "Banyan Hello"
       }
     ]
   },

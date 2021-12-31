@@ -12,13 +12,14 @@ module Banyan.Markdown
   )
 where
 
-import Banyan.ID
+import Banyan.ID (NodeID)
 import Control.Exception (throw)
 import Data.Aeson (FromJSON (parseJSON))
 import Data.Default (Default (..))
 import qualified Data.Text as T
 import Data.Time.Clock (UTCTime)
 import Data.Time.Format (defaultTimeLocale, parseTimeM)
+import Data.Time.Format.ISO8601 (iso8601ParseM)
 import qualified Ema.Helper.Markdown as Markdown
 import Text.Blaze.Html5 ((!))
 import qualified Text.Blaze.Html5 as H
@@ -44,8 +45,8 @@ instance FromJSON CreatedTime where
   parseJSON = parseCreatedTime <=< parseJSON
 
 parseCreatedTime :: (MonadFail m, Alternative m) => Text -> m CreatedTime
-parseCreatedTime s = do
-  utct <- parseTimeM False defaultTimeLocale dateFormat . toString $ s
+parseCreatedTime (toString -> s) = do
+  utct <- parseTimeM False defaultTimeLocale dateFormat s <|> iso8601ParseM s
   pure $ CreatedTime utct
   where
     dateFormat = "%Y-%m-%dT%H:%M:%S"

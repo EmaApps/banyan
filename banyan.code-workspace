@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "vscode-extension"
+		}
+	],
+	"settings": {
+		"nixEnvSelector.nixFile": "${workspaceRoot}/shell.nix"
+	}
+}
