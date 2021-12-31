@@ -35,7 +35,7 @@ renderNode model hereR emptyAllowed (Node nid children) = do
 nodeLink :: Model -> Route -> NodeID -> H.Html
 nodeLink model hereR nid =
   case modelLookup nid model of
-    Nothing -> "error: no such node"
+    Nothing -> "error: no such node: " <> show nid
     Just (mMeta, _pandoc) -> do
       let nodeTitle = fromMaybe (show nid) $ Markdown.title =<< mMeta
       routeElemUnlessHere model hereR (nodeRoute nid) $ do

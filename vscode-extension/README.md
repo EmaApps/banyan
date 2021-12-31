@@ -1,6 +1,6 @@
 # banyan README
 
-Demo: `open vscode://srid.banyan/new`
+Demo: `open 'vscode://srid.banyan/new/blah?parent=foobar'`
 
 Create package: `./node_modules/.bin/vsce package`.
 
