@@ -25,6 +25,7 @@ Design:
 - File-format 
   - `.md` files for nodes
   - Tree relationships are defined in YAML `parent` key.[^relbrain].
+- VSCode extension handles the "edit" links
 
 Todo:
 
@@ -61,7 +62,7 @@ Compensating for lack of interactive web client:
     - [x] "One-click" modifications: Have browser open text editor?
     - Custom URI handler for creating new posts: https://developer.apple.com/documentation/xcode/defining-a-custom-url-scheme-for-your-app
       - [x] Even better, as VSCode extension: https://code.visualstudio.com/api/advanced-topics/remote-extensions#callbacks-and-uri-handlers
-      - [ ] Include base url in URI
+      - [x] Include base url in URI
   - [ ] Rich-text copy-paste (eg: AFT to WOC)
     - Use 'copy as markdown' or 'paste as markdown'?
     - https://euangoddard.github.io/clipboard2markdown/

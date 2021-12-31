@@ -21,7 +21,7 @@ renderHtml emaAction model r =
   Tailwind.layout emaAction (H.title "Banyan" >> H.base ! A.href "/" >> H.link ! A.rel "shortcut icon" ! A.href "banyan.svg" ! A.type_ "image/svg") $
     renderLayout
       model
-      (VSCode.renderVSCodeAction $ VSCode.NewNode (model ^. modelNextID) routeNid)
+      (VSCode.renderVSCodeAction $ mkVSCodeAction $ VSCode.NewNode (model ^. modelNextID) routeNid)
       (Sidebar.renderSidebar model r)
       $ case r of
         RIndex -> do
@@ -35,7 +35,7 @@ renderHtml emaAction model r =
               H.header ! A.class_ "text-2xl font-bold" $ H.toHtml nodeTitle
               H.div ! A.class_ "my-2" $ do
                 Markdown.renderPandoc pandoc
-                VSCode.renderVSCodeAction $ VSCode.EditNode nid
+                VSCode.renderVSCodeAction $ mkVSCodeAction $ VSCode.EditNode nid
               let childNodes' = G.getDescendents nid $ model ^. modelGraph
                   -- TODO: DRY with sidebar
                   childNodes = sortOn (fmap fst . flip modelLookup model) childNodes'
@@ -54,9 +54,11 @@ renderHtml emaAction model r =
                           let nodeDate = maybe "No date" show $ Markdown.date =<< childMMeta
                           H.toHtml @Text nodeDate
                         Markdown.renderPandoc childPandoc
-                        VSCode.renderVSCodeAction $ VSCode.EditNode node
+                        VSCode.renderVSCodeAction $ mkVSCodeAction $ VSCode.EditNode node
               H.div ! A.class_ "font-mono text-xs text-gray-400 mt-8" $ H.toHtml $ show @Text mMeta
   where
+    mkVSCodeAction =
+      VSCode.VSCodeAction (model ^. modelBaseDir)
     routeNid = case r of
       RIndex -> Nothing
       RNode nid -> Just nid
