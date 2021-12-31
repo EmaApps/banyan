@@ -8,6 +8,8 @@
 		}
 	],
 	"settings": {
-		"nixEnvSelector.nixFile": "${workspaceRoot}/shell.nix"
+		"nixEnvSelector.nixFile": "${workspaceRoot}/shell.nix",
+		"editor.formatOnSave": true,
+		"editor.formatOnPaste": true
 	}
 }

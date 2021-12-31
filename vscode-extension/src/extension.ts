@@ -29,20 +29,19 @@ export function activate(context: vscode.ExtensionContext) {
 	function newNode(fp: String, contents: string) {
 		vscode.window.showInformationMessage(contents);
 		let path = banyanDir + "/" + fp + ".md";
-		fs.writeFile(path, contents, (err : object)  => {
+		fs.writeFile(path, contents, (err: object) => {
 			if (err) {
 				vscode.window.showErrorMessage(err.toString());
-			}else {
+			} else {
 				vscode.window.showInformationMessage(path);
-				// FIXME: this doesn't work
-				vscode.workspace.openTextDocument(path);
+				vscode.commands.executeCommand('vscode.open', vscode.Uri.file(path));
 			}
 		});
 	};
 
-	function mdTemplate(mParent : O.Option<string>) {
-			let dt = new Date().toISOString();
-			let parentS = pipe(mParent, O.match(() => ``, parent => `parent: ${parent}\n`));
+	function mdTemplate(mParent: O.Option<string>) {
+		let dt = new Date().toISOString();
+		let parentS = pipe(mParent, O.match(() => ``, parent => `parent: ${parent}\n`));
 		return dedent(`---
 						date: ${dt}
 						${parentS}---
@@ -55,13 +54,14 @@ export function activate(context: vscode.ExtensionContext) {
 		handleUri(uri: vscode.Uri): vscode.ProviderResult<void> {
 			// Add your code for what to do when the authentication completes here.
 			vscode.window.showInformationMessage(uri.toString());
+			// TODO:  distinguish new vs edit
 			let [_empty, _new, fp] = uri.path.split("/");
 			let dt = new Date().toISOString();
 			let queries = uri.query.split('&');
 			if (queries.length > 0) {
 				let [k, v] = queries[0].split('=');
 				let mParent = (k === "parent") ? O.some(v) : O.none;
-				newNode(fp, mdTemplate(mParent)); 
+				newNode(fp, mdTemplate(mParent));
 			};
 		}
 	}));
