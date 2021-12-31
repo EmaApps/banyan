@@ -70,21 +70,18 @@ editLink _ _ _ =
   mempty
 
 topbar :: Model -> Route -> H.Html
-topbar model r =
-  H.pre ! A.class_ "overflow-auto py-2" $ do
-    H.toHtml $
-      newFileCli (_modelNextID model) $ case r of
-        RIndex -> Nothing
-        RNode nid -> Just nid
-  where
-    -- CLI for creating a new node, optionally under the given parent.
-    newFileCli :: NodeID -> Maybe NodeID -> Text
-    newFileCli (show -> nid) mPid =
-      -- If there is parent node, inject `parent: ...` property into YAML header.
-      let pidS :: Text = maybe "\\n" (\pid -> "\\nparent: " <> show pid) mPid
-       in [text|
-        echo "---\ndate: $(date -u +'%Y-%m-%dT%H:%M:%S')${pidS}\n---\n\n" >${nid}.md; cat >>${nid}.md
-      |]
+topbar model r = do
+  let uri :: Text =
+        "vscode://srid.banyan/new/" <> show (_modelNextID model)
+          <> ( case r of
+                 RIndex -> ""
+                 RNode pid -> "?parent=" <> show pid
+             )
+  H.a
+    ! A.class_ "bg-blue-400 text-sm text-white p-1 my-2"
+    ! A.title (show $ _modelNextID model)
+    ! A.href (H.toValue uri)
+    $ "New in VS Code"
 
 renderLayout :: Model -> H.Html -> H.Html -> H.Html -> H.Html
 renderLayout model top sidebar main = do

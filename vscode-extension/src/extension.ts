@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as O from 'fp-ts/Option';
+import { pipe } from 'fp-ts/function';
 let fs = require("fs");
 var dedent = require('dedent-js');
 
@@ -26,12 +27,28 @@ export function activate(context: vscode.ExtensionContext) {
 	}));
 
 	function newNode(fp: String, contents: string) {
-		// TODO: actually create the file; and open in VSCode
 		vscode.window.showInformationMessage(contents);
 		let path = banyanDir + "/" + fp + ".md";
-		fs.writeFile(path, contents, (err : string)  => {
-			vscode.window.showErrorMessage(err);
+		fs.writeFile(path, contents, (err : object)  => {
+			if (err) {
+				vscode.window.showErrorMessage(err.toString());
+			}else {
+				vscode.window.showInformationMessage(path);
+				// FIXME: this doesn't work
+				vscode.workspace.openTextDocument(path);
+			}
 		});
+	};
+
+	function mdTemplate(mParent : O.Option<string>) {
+			let dt = new Date().toISOString();
+			let parentS = pipe(mParent, O.match(() => ``, parent => `parent: ${parent}\n`));
+		return dedent(`---
+						date: ${dt}
+						${parentS}---
+
+
+            `);
 	};
 
 	context.subscriptions.push(vscode.window.registerUriHandler({
@@ -43,15 +60,8 @@ export function activate(context: vscode.ExtensionContext) {
 			let queries = uri.query.split('&');
 			if (queries.length > 0) {
 				let [k, v] = queries[0].split('=');
-				// TODO: handle non-parent case
-				if (k === "parent") { 
-					let mParent = O.some(v);
-					newNode(fp, dedent(`---
-						date: ${dt}
-						parent: ${v}
-						---
-            `));
-				};
+				let mParent = (k === "parent") ? O.some(v) : O.none;
+				newNode(fp, mdTemplate(mParent)); 
 			};
 		}
 	}));
