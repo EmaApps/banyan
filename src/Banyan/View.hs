@@ -19,7 +19,7 @@ import qualified Text.Blaze.Html5.Attributes as A
 
 renderHtml :: Ema.CLI.Action -> Model -> Route -> LByteString
 renderHtml emaAction model r =
-  Tailwind.layout emaAction (H.title "Banyan" >> H.base ! A.href "/" >> H.link ! A.rel "shortcut icon" ! A.href "banyan.svg" ! A.type_ "image/svg") $
+  Tailwind.layoutWith "en" "UTF-8" (Tailwind.twindShim emaAction) (H.title "Banyan" >> H.base ! A.href "/" >> H.link ! A.rel "shortcut icon" ! A.href "banyan.svg" ! A.type_ "image/svg") $
     renderLayout
       model
       (VSCode.renderVSCodeAction $ mkVSCodeAction $ VSCode.NewNode (model ^. modelNextID) routeNid)
@@ -33,16 +33,18 @@ renderHtml emaAction model r =
             Just (mMeta, pandoc) -> do
               -- TODO: this should be a breadcrumb
               let nodeTitle = fromMaybe (show nid) $ Markdown.title =<< mMeta
-              H.header ! A.class_ "text-2xl font-bold" $ H.toHtml nodeTitle
+              H.header ! A.class_ "text-2xl font-bold" $ do 
+                H.toHtml nodeTitle
+                VSCode.renderVSCodeAction $ mkVSCodeAction $ VSCode.EditNode nid
               H.div ! A.class_ "my-2" $ do
                 Markdown.renderPandoc pandoc
-                VSCode.renderVSCodeAction $ mkVSCodeAction $ VSCode.EditNode nid
               let childNodes' = G.getDescendents nid $ model ^. modelGraph
                   -- TODO: DRY with sidebar
                   childNodes = sortOn (fmap fst . flip modelLookup model) childNodes'
               H.div ! A.class_ "my-2 " $ do
+                VSCode.renderVSCodeAction $ mkVSCodeAction $ VSCode.NewNode (model ^. modelNextID) routeNid
                 forM_ childNodes $ \node ->
-                  H.div ! A.class_ "border-2 p-2 my-2 bg-gray-50" $ do
+                  H.div ! A.class_ "border-2 p-2 my-2 bg-white max-w-prose" $ do
                     case modelLookup node model of
                       Nothing -> do
                         "missing!"
@@ -61,8 +63,8 @@ renderHtml emaAction model r =
                           " / "
                           let nodeDate = maybe "No date" show $ Markdown.date =<< childMMeta
                           H.toHtml @Text nodeDate
+                          VSCode.renderVSCodeAction $ mkVSCodeAction $ VSCode.EditNode node
                         Markdown.renderPandoc childPandoc
-                        VSCode.renderVSCodeAction $ mkVSCodeAction $ VSCode.EditNode node
               H.div ! A.class_ "font-mono text-xs text-gray-400 mt-8" $ H.toHtml $ show @Text mMeta
   where
     mkVSCodeAction =
@@ -73,13 +75,14 @@ renderHtml emaAction model r =
 
 renderLayout :: Model -> H.Html -> H.Html -> H.Html -> H.Html
 renderLayout model top sidebar main = do
-  H.div ! A.class_ "container mx-auto" $ do
-    H.div ! A.class_ "flex flex-col mt-2" $ do
-      H.div ! A.id "top" ! A.class_ "bg-pink-100 border-2 border-pink-400 p-2 rounded text-center" $ top
-      H.div ! A.class_ "flex flex-row pt-2" $ do
-        H.div ! A.id "sidebar" $ sidebar
-        H.div ! A.id "main" $ main
-    renderFooter model
+  H.body ! A.class_ "overflow-y-scroll bg-gray-200" $ do
+    H.div ! A.class_ "container mx-auto max-w-screen-lg" $ do
+      H.div ! A.class_ "flex flex-col mt-2" $ do
+        H.div ! A.id "top" ! A.class_ "bg-pink-100 border-2 border-pink-400 p-2 rounded text-center" $ top
+        H.div ! A.class_ "flex flex-row pt-2" $ do
+          H.div ! A.id "sidebar" $ sidebar
+          H.div ! A.id "main" $ main
+      renderFooter model
 
 renderFooter :: Model -> H.Html
 renderFooter model = do

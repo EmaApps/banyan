@@ -32,7 +32,7 @@ executable banyan
     , containers
     , data-default
     , directory
-    , ema                 >=0.3
+    , ema                 >=0.3.0.1
     , emanote
     , filepath
     , filepattern

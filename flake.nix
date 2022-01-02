@@ -1,14 +1,14 @@
 {
-  description = "Ema documentation source";
+  description = "Banyan";
   inputs = {
-    ema.url = "github:srid/ema/master";
     emanote.url = "github:srid/emanote/master";
+    ema.follows = "emanote/ema";
+    nixpkgs.follows = "emanote/nixpkgs";
+
     NanoID = {
       url = "github:srid/NanoID/srid";
       flake = false;
     };
-    # Use the nixpkgs used by the pinned ema.
-    nixpkgs.follows = "ema/nixpkgs";
 
     flake-utils.url = "github:numtide/flake-utils";
     flake-compat = {
@@ -57,7 +57,7 @@
             root = pkgs.lib.cleanSourceWith { inherit filter name; src = ./.; };
             withHoogle = false;
             overrides = self: super: with pkgs.haskell.lib; {
-              ema = disableCabalFlag inputs.ema.defaultPackage.${system} "with-examples";
+              ema = inputs.ema.defaultPackage.${system};
               emanote = inputs.emanote.defaultPackage.${system};
               NanoID = self.callCabal2nix "NanoID" inputs.NanoID { };
             };

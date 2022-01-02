@@ -16,16 +16,16 @@ import qualified Text.Blaze.Html5.Attributes as A
 renderSidebar :: Model -> Route -> H.Html
 renderSidebar model hereR = do
   let forest = G.toTree $ model ^. modelGraph
-  H.div ! A.class_ "border-r-2 md:h-full pr-2 mr-2" $ do
+  H.div ! A.class_ "border-r-2 md:h-full pr-4 mr-4" $ do
     routeElemUnlessHere model hereR (Right RIndex) "Index"
-    H.div ! A.class_ "font-mono" $ do
+    H.div ! A.class_ "" $ do
       forM_ forest $ \node ->
         renderNode model hereR True node
 
 renderNode :: Model -> Route -> Bool -> Tree G.NodeID -> H.Html
 renderNode model hereR emptyAllowed (Node nid children) = do
   when (emptyAllowed || not (null children)) $ do
-    H.div ! A.class_ "pl-2" $ do
+    H.div ! A.class_ "pl-3 my-1" $ do
       nodeLink model hereR nid
       H.div $ do
         let childNodes = sortOn (fmap fst . flip modelLookup model . Tree.rootLabel) children
