@@ -44,6 +44,7 @@ Right now,
   - [ ] Docker image
   - [ ] Build `./content` using Docker image
   - [ ] Or: run websocket server in DigitalOcean with syncthing
+- [ ] Wikilink support (for referencing other nodes.)
 
 Compensating for lack of interactive web client:
 
