@@ -28,31 +28,18 @@ Design:
 
 Todo:
 
-Right now,
+Untriaged (as issues):
 
-- [x] Dogfooding: start using `./content` for tracking banyan's evolution
-  - [x] Store (UTC) `time` in metadata
-    - [x] At this point: we need a CLI tool to 'add' content? Or have UI show unix CLI to create it as one-liner? `echo "$(date..)" >$ID.md; cat >>$ID.md`
-- [x] Parse and render Markdown
-- [ ] Tree structure...
-  - [x] Parse `graph.dot`
-  - [x] Sidebar
-  - [ ] Breadcrumb instead of title
-  - [x] HTML for child listing and count
-    - Supress leave nodes from sidebar listing 
-- [ ] Nice HTML and publish
-  - [ ] Docker image
-  - [ ] Build `./content` using Docker image
-  - [ ] Or: run websocket server in DigitalOcean with syncthing
+- [ ] Breadcrumbs
 - [ ] Wikilink support (for referencing other nodes.)
 
 Compensating for lack of interactive web client:
 
 - Features to 'map' to Ema-workflow
-  - [ ] Quick-view of posts
+  - [x] Quick-view of posts
     - Run prod Banyan as daemon locally; and pin 'chrome app'
       - [x] nix-darwin & `launchd`
-    - [ ] Test it on private banyan
+    - [x] Test it on private banyan
   - [x] Quick-post or Quick-edit under a card
     - [x] The newfile cli for new/edit can change depending on route
       - [x] Replace graph.dot with YAML parent specification. Makes it easy to create one-run CLI for adding child nodes.

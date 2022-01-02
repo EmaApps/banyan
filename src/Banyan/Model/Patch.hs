@@ -3,7 +3,9 @@ module Banyan.Model.Patch where
 import Banyan.ID (parseIDFileName)
 import qualified Banyan.Markdown as Markdown
 import Banyan.Model
+import Control.Lens.Operators ((^.))
 import qualified Ema.Helper.FileSystem as EmaFS
+import System.FilePath ((</>))
 import System.FilePattern (FilePattern)
 
 data FileType = FTMd | FTStatic
@@ -45,7 +47,7 @@ patchModel ftype fp action =
           EmaFS.Delete -> do
             pure $ modelDel uuid
       FTStatic -> case action of
-        EmaFS.Refresh _ absPath -> do
-          pure $ modelAddFile fp absPath
+        EmaFS.Refresh _ _ -> do
+          pure $ \model -> modelAddFile fp (model ^. modelBaseDir </> fp) model
         EmaFS.Delete ->
           pure $ modelDelFile fp
