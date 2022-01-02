@@ -4,4 +4,4 @@ title: Easy UX
 parent: dKuTgZ1YJfcoB
 ---
 
-Web apps like WOC is just easy to use. How can I achieve the same for Ema apps?
+Web apps like WOC are just easy to use. How can I achieve the same for Ema apps?

@@ -48,3 +48,27 @@ jobs:
           echo ${{ secrets.DOCKER_PASS }} | docker login -u sridca --password-stdin
           set -x
           docker push sridca/banyon:latest
+
+  website:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download docker image
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-img
+      - name: Generate website HTML 🔧
+        run: |
+          mkdir -p ./content/.ci/output
+          docker load -i *docker-image-banyan.tar.gz
+          docker run -e LANG=C.UTF-8 -e LC_ALL=C.UTF-8 -v $PWD/content:/data/content sridca/banyan banyan gen /data/content/.ci/output
+          cp -r ./content/.ci .
+          # bash ./.ci/output/_emanote-bin/compile-css
+      - name: Deploy to website to gh-pages 🚀
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .ci/output
+          # cname: note.ema.srid.ca
