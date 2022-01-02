@@ -18,15 +18,15 @@ let
         }
       )
       { };
-  banyon = (import ./.).defaultPackage.x86_64-linux;
+  banyan = (import ./.).defaultPackage.x86_64-linux;
   windicss = (import ./.).windicss.x86_64-linux;
 in
-{ name ? "sridca/banyon"
+{ name ? "sridca/banyan"
 , tag ? "dev"
 }: pkgs.dockerTools.buildImage {
   inherit name tag;
   contents = [
-    banyon
+    banyan
     # For compiling CSS (requires nodeJS runtime and .js files; so disabled)
     # windicss
     # These are required for the GitLab CI runner
@@ -39,6 +39,6 @@ in
     Volumes = {
       "/data" = { };
     };
-    Cmd = [ "${banyon}/bin/banyon" ];
+    Cmd = [ "${banyan}/bin/banyan" ];
   };
 }
