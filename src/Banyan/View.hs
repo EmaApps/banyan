@@ -22,63 +22,75 @@ renderHtml emaAction model r =
   Tailwind.layoutWith "en" "UTF-8" (Tailwind.twindShim emaAction) (H.title "Banyan" >> H.base ! A.href "/" >> H.link ! A.rel "shortcut icon" ! A.href "banyan.svg" ! A.type_ "image/svg") $
     renderLayout
       model
-      (VSCode.renderVSCodeAction $ mkVSCodeAction $ VSCode.NewNode (model ^. modelNextID) routeNid)
+      (H.header ! A.class_ "flex items-center justify-center border-b-4 border-green-500" $ H.a ! A.href "https://github.com/srid/banyan" $ H.img ! A.class_ "w-8" ! A.src "/banyan.svg")
       (Sidebar.renderSidebar model r)
       $ case r of
         RIndex -> do
-          "Check the sidebar"
+          let allNodes' = Map.keys $ model ^. modelNodes
+              -- TODO: DRY with sidebar
+              allNodes = sortOn (fmap fst . flip modelLookup model) allNodes'
+          H.header "Timeline"
+          -- TODO: breadcrumb
+          VSCode.renderVSCodeAction $ mkVSCodeAction model $ VSCode.NewNode (model ^. modelNextID) routeNid
+          renderListing model allNodes
         RNode nid -> do
           case modelLookup nid model of
             Nothing -> "Not found"
             Just (mMeta, pandoc) -> do
               -- TODO: this should be a breadcrumb
               let nodeTitle = fromMaybe (show nid) $ Markdown.title =<< mMeta
-              H.header ! A.class_ "text-2xl font-bold" $ do 
+              H.header ! A.class_ "text-2xl font-bold" $ do
                 H.toHtml nodeTitle
-                VSCode.renderVSCodeAction $ mkVSCodeAction $ VSCode.EditNode nid
+                VSCode.renderVSCodeAction $ mkVSCodeAction model $ VSCode.EditNode nid
               H.div ! A.class_ "my-2" $ do
                 Markdown.renderPandoc pandoc
               let childNodes' = G.getDescendents nid $ model ^. modelGraph
                   -- TODO: DRY with sidebar
                   childNodes = sortOn (fmap fst . flip modelLookup model) childNodes'
               H.div ! A.class_ "my-2 " $ do
-                VSCode.renderVSCodeAction $ mkVSCodeAction $ VSCode.NewNode (model ^. modelNextID) routeNid
-                forM_ childNodes $ \node ->
-                  H.div ! A.class_ "border-2 p-2 my-2 bg-white max-w-prose" $ do
-                    case modelLookup node model of
-                      Nothing -> do
-                        "missing!"
-                        show node
-                      Just (childMMeta, childPandoc) -> do
-                        H.div ! A.class_ "text-sm text-gray-500" $ do
-                          let childTitle = fromMaybe (show node) $ Markdown.title =<< childMMeta
-                              grandChildren = G.getDescendents node $ model ^. modelGraph
-                          H.span ! A.class_ "font-mono" $
-                            if null grandChildren
-                              then H.toHtml childTitle
-                              else do
-                                routeElem model (Sidebar.nodeRoute node) $ do
-                                  H.toHtml childTitle
-                                " (" <> show (length grandChildren) <> ")"
-                          " / "
-                          let nodeDate = maybe "No date" show $ Markdown.date =<< childMMeta
-                          H.toHtml @Text nodeDate
-                          VSCode.renderVSCodeAction $ mkVSCodeAction $ VSCode.EditNode node
-                        Markdown.renderPandoc childPandoc
+                VSCode.renderVSCodeAction $ mkVSCodeAction model $ VSCode.NewNode (model ^. modelNextID) routeNid
+                renderListing model childNodes
               H.div ! A.class_ "font-mono text-xs text-gray-400 mt-8" $ H.toHtml $ show @Text mMeta
   where
-    mkVSCodeAction =
-      VSCode.VSCodeAction (model ^. modelBaseDir)
     routeNid = case r of
       RIndex -> Nothing
       RNode nid -> Just nid
 
+renderListing :: Model -> [G.NodeID] -> H.Html
+renderListing model nodes = do
+  forM_ nodes $ \node ->
+    H.div ! A.class_ "rounded shadow p-2 my-2 bg-white max-w-prose" $ do
+      case modelLookup node model of
+        Nothing -> do
+          "missing!"
+          show node
+        Just (childMMeta, childPandoc) -> do
+          H.div ! A.class_ "text-sm text-gray-500" $ do
+            let childTitle = fromMaybe (show node) $ Markdown.title =<< childMMeta
+                grandChildren = G.getDescendents node $ model ^. modelGraph
+            H.div ! A.class_ "font-mono text-xs flex flex-row items-center justify-between bg-gray-50 hover:bg-gray-100 p-1" $ do
+              H.div $
+                if null grandChildren
+                  then H.toHtml childTitle
+                  else do
+                    routeElem model (Sidebar.nodeRoute node) $ do
+                      H.toHtml childTitle
+                    " (" <> show (length grandChildren) <> ")"
+              let nodeDate = maybe "" show $ Markdown.date =<< childMMeta
+              H.span ! A.class_ "opacity-60" $ H.toHtml @Text nodeDate
+              VSCode.renderVSCodeAction $ mkVSCodeAction model $ VSCode.EditNode node
+          Markdown.renderPandoc childPandoc
+
+mkVSCodeAction :: Model -> VSCode.Action -> VSCode.VSCodeAction
+mkVSCodeAction model =
+  VSCode.VSCodeAction (model ^. modelBaseDir)
+
 renderLayout :: Model -> H.Html -> H.Html -> H.Html -> H.Html
 renderLayout model top sidebar main = do
   H.body ! A.class_ "overflow-y-scroll bg-gray-200" $ do
-    H.div ! A.class_ "container mx-auto max-w-screen-lg" $ do
+    H.div ! A.class_ "container mx-auto max-w-screen-md" $ do
       H.div ! A.class_ "flex flex-col mt-2" $ do
-        H.div ! A.id "top" ! A.class_ "bg-pink-100 border-2 border-pink-400 p-2 rounded text-center" $ top
+        H.div ! A.id "top" ! A.class_ "border-2 p-1 rounded text-center" $ top
         H.div ! A.class_ "flex flex-row pt-2" $ do
           H.div ! A.id "sidebar" $ sidebar
           H.div ! A.id "main" $ main

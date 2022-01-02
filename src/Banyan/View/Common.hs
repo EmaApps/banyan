@@ -15,7 +15,7 @@ routeElemUnlessHere model hereR (r' :: Either FilePath Route) =
 
 routeElem :: Model -> Either FilePath Route -> H.Html -> H.Html
 routeElem model (r' :: Either FilePath Route) =
-  H.a ! A.class_ "text-pink-500 hover:bg-pink-500 hover:text-white transition-colors" ! routeHref model r'
+  H.a ! A.class_ "text-green-600 hover:bg-green-500 hover:text-white transition-colors" ! routeHref model r'
 
 routeHref :: Model -> Either FilePath Route -> H.Attribute
 routeHref model r' =

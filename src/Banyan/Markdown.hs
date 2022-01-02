@@ -33,6 +33,7 @@ newtype CreatedTime = CreatedTime UTCTime
 
 data Meta = Meta
   { title :: Maybe Text,
+    -- | Date will be used to sort a list of `Meta`s.
     date :: Maybe CreatedTime,
     parent :: Maybe NodeID
   }
@@ -160,7 +161,7 @@ rpInline = \case
     let (cls, target) =
           if "://" `T.isInfixOf` url
             then ("text-yellow-600 hover:underline", targetBlank)
-            else ("text-yellow-600 font-bold hover:bg-pink-50", mempty)
+            else ("text-yellow-600 font-bold hover:bg-green-50", mempty)
     H.a
       ! A.class_ cls
       ! A.href (H.textValue url)
