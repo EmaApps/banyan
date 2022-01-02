@@ -21,8 +21,8 @@ instance Ema Model (Either FilePath Route) where
     (parseIDFileName ".html" -> Just uuid) ->
       Right (RNode uuid) <$ modelLookup uuid model
     fp -> do
-      absPath <- Map.lookup fp (model ^. modelFiles)
-      pure $ Left absPath
+      guard $ Map.member fp (model ^. modelFiles)
+      pure $ Left fp
   allRoutes m =
     -- TODO: Don't generate pages for leaf nodes (they are not linked to)
     (Right <$> RIndex : (RNode <$> Map.keys (m ^. modelNodes)))

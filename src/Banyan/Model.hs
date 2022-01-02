@@ -12,6 +12,7 @@ import Control.Lens.Operators ((%~), (.~), (^.))
 import Control.Lens.TH (makeLenses)
 import qualified Data.Map.Strict as Map
 import System.FilePath ((-<.>), (</>))
+import UnliftIO.Directory (makeAbsolute)
 
 type Node = (Maybe Meta, Pandoc)
 
@@ -29,8 +30,9 @@ data Model = Model
   deriving (Show)
 
 emptyModel :: MonadIO m => FilePath -> m Model
-emptyModel baseDir = do
+emptyModel baseDir' = do
   rid <- randomId
+  baseDir <- makeAbsolute baseDir'
   pure $
     Model
       { _modelBaseDir = baseDir,
