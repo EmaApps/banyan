@@ -50,6 +50,7 @@ modelDel nid =
     >>> modelGraph
     %~ G.removeNode nid
 
+-- | This will update if the node already exists.
 modelAdd :: NodeID -> Node -> Model -> Model
 modelAdd nid node =
   modelNodes

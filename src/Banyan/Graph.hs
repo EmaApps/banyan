@@ -11,7 +11,10 @@ type NodeID = NanoID
 
 addNodeWithParent :: NodeID -> Maybe NodeID -> AM.AdjacencyMap NodeID -> AM.AdjacencyMap NodeID
 addNodeWithParent nid mPid g =
-  AM.overlays [g, AM.vertex nid, maybe AM.empty (`AM.edge` nid) mPid]
+  -- First remove old parent relationship, if it exists.
+  let oldEs = AM.preSet nid g
+      g' = foldl' (\h oldParent -> AM.removeEdge oldParent nid h) g oldEs
+   in AM.overlays [g', AM.vertex nid, maybe AM.empty (`AM.edge` nid) mPid]
 
 removeNode :: NodeID -> AM.AdjacencyMap NodeID -> AM.AdjacencyMap NodeID
 removeNode =

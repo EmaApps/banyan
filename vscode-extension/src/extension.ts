@@ -51,7 +51,6 @@ export function activate(context: vscode.ExtensionContext) {
 				});
 			};
 		});
-
 	};
 
 	function mdTemplate(mParent: O.Option<string>) {

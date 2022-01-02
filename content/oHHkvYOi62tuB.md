@@ -1,6 +1,6 @@
 ---
 date: 2021-12-30T22:23:05
-parent: JSR2CdqWHAaS7
+parent: PjorLl0gmEykt
 ---
 
 No more DOT!

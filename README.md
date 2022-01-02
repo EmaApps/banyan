@@ -21,11 +21,10 @@ Design:
 - Tree of nodes: a 'node' correponds to a post -- which may be micro blogpost sized or tweet sized -- that is uniquely positioned in its context as identified by its location in the tree. 
 - Child nodes indicate posts made *over time* (hence tree-of-time) under its parent. 
 - Each node is identified by an unique ID, that appears in the URL. We use [Nano ID](https://github.com/ai/nanoid) in place of UUID. It is short and sufficient.
-- "Next ID" is displayed as CLI to create new files in all pages. We could improve the workflow further here.
+- VSCode extension handles the "edit" (and "new") links (live-server only)
 - File-format 
   - `.md` files for nodes
   - Tree relationships are defined in YAML `parent` key.[^relbrain].
-- VSCode extension handles the "edit" links
 
 Todo:
 
@@ -41,9 +40,6 @@ Right now,
   - [ ] Breadcrumb instead of title
   - [x] HTML for child listing and count
     - Supress leave nodes from sidebar listing 
-- Bugs/issues
-  - Nodes not in `graph.dot` must appear in sidebar
-  - dfsForest: creates non-parents. use bfsForest?
 - [ ] Nice HTML and publish
   - [ ] Docker image
   - [ ] Build `./content` using Docker image
