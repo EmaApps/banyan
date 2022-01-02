@@ -7,14 +7,12 @@ import qualified Banyan.Model as Model
 import qualified Banyan.Model.Patch as Patch
 import Banyan.Route (Route)
 import qualified Banyan.View as View
-import Control.Lens.Operators ((^.))
 import qualified Ema
 import qualified Ema.CLI
 import qualified Emanote
 import qualified Emanote.Source.Loc as Loc
 import System.Directory (makeAbsolute)
 import qualified System.Environment as Env
-import System.FilePath ((</>))
 import qualified Test.Tasty as T
 
 main :: IO ()
@@ -51,7 +49,7 @@ render act model = \case
   Left fp ->
     -- This instructs ema to treat this route "as is" (ie. a static file; no generation)
     -- The argument `fp` refers to the absolute path to the static file.
-    Ema.AssetStatic $ model ^. Model.modelBaseDir </> fp
+    Ema.AssetStatic fp
   Right r ->
     -- Generate a Html route; hot-reload is enabled.
     Ema.AssetGenerated Ema.Html $ View.renderHtml act model r
