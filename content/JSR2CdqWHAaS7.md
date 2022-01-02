@@ -1,6 +1,6 @@
 ---
 date: 2021-12-30T21:19:23
-title: One-click and such
+title: Easy UX
 parent: dKuTgZ1YJfcoB
 ---
 

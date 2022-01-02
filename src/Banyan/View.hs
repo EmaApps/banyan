@@ -7,6 +7,7 @@ import qualified Banyan.Markdown as Markdown
 import Banyan.Model
 import Banyan.Route
 import qualified Banyan.VSCode as VSCode
+import Banyan.View.Common (routeElem)
 import qualified Banyan.View.Sidebar as Sidebar
 import Control.Lens.Operators ((^.))
 import qualified Data.Map.Strict as Map
@@ -49,7 +50,14 @@ renderHtml emaAction model r =
                       Just (childMMeta, childPandoc) -> do
                         H.div ! A.class_ "text-sm text-gray-500" $ do
                           let childTitle = fromMaybe (show node) $ Markdown.title =<< childMMeta
-                          H.span ! A.class_ "font-mono" $ H.toHtml childTitle
+                              grandChildren = G.getDescendents node $ model ^. modelGraph
+                          H.span ! A.class_ "font-mono" $
+                            if null grandChildren
+                              then H.toHtml childTitle
+                              else do
+                                routeElem model (Sidebar.nodeRoute node) $ do
+                                  H.toHtml childTitle
+                                " (" <> show (length grandChildren) <> ")"
                           " / "
                           let nodeDate = maybe "No date" show $ Markdown.date =<< childMMeta
                           H.toHtml @Text nodeDate
