@@ -31,8 +31,8 @@ renderHtml emaAction model r =
               allNodes = sortOn (fmap fst . flip modelLookup model) allNodes'
           H.header "Timeline"
           -- TODO: breadcrumb
-          VSCode.renderVSCodeAction $ mkVSCodeAction model $ VSCode.NewNode (model ^. modelNextID) routeNid
-          renderListing model allNodes
+          VSCode.renderVSCodeAction emaAction $ mkVSCodeAction model $ VSCode.NewNode (model ^. modelNextID) routeNid
+          renderListing emaAction model allNodes
         RNode nid -> do
           case modelLookup nid model of
             Nothing -> "Not found"
@@ -41,23 +41,23 @@ renderHtml emaAction model r =
               let nodeTitle = fromMaybe (show nid) $ Markdown.title =<< mMeta
               H.header ! A.class_ "text-2xl font-bold" $ do
                 H.toHtml nodeTitle
-                VSCode.renderVSCodeAction $ mkVSCodeAction model $ VSCode.EditNode nid
+                VSCode.renderVSCodeAction emaAction $ mkVSCodeAction model $ VSCode.EditNode nid
               H.div ! A.class_ "my-2" $ do
                 Markdown.renderPandoc pandoc
               let childNodes' = G.getDescendents nid $ model ^. modelGraph
                   -- TODO: DRY with sidebar
                   childNodes = sortOn (fmap fst . flip modelLookup model) childNodes'
               H.div ! A.class_ "my-2 " $ do
-                VSCode.renderVSCodeAction $ mkVSCodeAction model $ VSCode.NewNode (model ^. modelNextID) routeNid
-                renderListing model childNodes
+                VSCode.renderVSCodeAction emaAction $ mkVSCodeAction model $ VSCode.NewNode (model ^. modelNextID) routeNid
+                renderListing emaAction model childNodes
               H.div ! A.class_ "font-mono text-xs text-gray-400 mt-8" $ H.toHtml $ show @Text mMeta
   where
     routeNid = case r of
       RIndex -> Nothing
       RNode nid -> Just nid
 
-renderListing :: Model -> [G.NodeID] -> H.Html
-renderListing model nodes = do
+renderListing :: Ema.CLI.Action -> Model -> [G.NodeID] -> H.Html
+renderListing emaAction model nodes = do
   forM_ nodes $ \node ->
     H.div ! A.class_ "rounded shadow p-2 my-2 bg-white max-w-prose" $ do
       case modelLookup node model of
@@ -78,7 +78,7 @@ renderListing model nodes = do
                     " (" <> show (length grandChildren) <> ")"
               let nodeDate = maybe "" show $ Markdown.date =<< childMMeta
               H.span ! A.class_ "opacity-60" $ H.toHtml @Text nodeDate
-              VSCode.renderVSCodeAction $ mkVSCodeAction model $ VSCode.EditNode node
+              VSCode.renderVSCodeAction emaAction $ mkVSCodeAction model $ VSCode.EditNode node
           Markdown.renderPandoc childPandoc
 
 mkVSCodeAction :: Model -> VSCode.Action -> VSCode.VSCodeAction
