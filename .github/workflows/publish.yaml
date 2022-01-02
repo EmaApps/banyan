@@ -44,10 +44,10 @@ jobs:
           name: docker-img
       - name: Build & Publish Docker image to Docker Hub
         run: |
-          docker load -i *docker-image-banyon.tar.gz
+          docker load -i *docker-image-banyan.tar.gz
           echo ${{ secrets.DOCKER_PASS }} | docker login -u sridca --password-stdin
           set -x
-          docker push sridca/banyon:latest
+          docker push sridca/banyan:latest
 
   website:
     needs: build
@@ -62,7 +62,6 @@ jobs:
       - name: Generate website HTML 🔧
         run: |
           mkdir -p ./content/.ci/output
-          ls -l
           docker load -i *docker-image-banyan.tar.gz
           docker run -e LANG=C.UTF-8 -e LC_ALL=C.UTF-8 -v $PWD/content:/data/content sridca/banyan banyan gen /data/content/.ci/output
           cp -r ./content/.ci .
