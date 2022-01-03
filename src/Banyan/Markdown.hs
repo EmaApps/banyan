@@ -60,6 +60,8 @@ parseMarkdown fp = do
   s <- readFileText fp
   pure $ Markdown.parseMarkdownWithFrontMatter @Meta Markdown.fullMarkdownSpec fp s
 
+-- Might have to rewrite this to use commonmark-hs, so I can specify wiki-link
+-- rendering.
 renderPandoc :: Pandoc -> H.Html
 renderPandoc doc =
   H.div ! A.class_ "prose" $ do

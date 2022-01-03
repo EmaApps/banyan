@@ -86,7 +86,9 @@ renderListing emaAction model nodes = do
                     " (" <> show (length grandChildren) <> ")"
               let nodeDate = maybe "" show $ Markdown.date =<< childMMeta
               H.span ! A.class_ "opacity-60" $ H.toHtml @Text nodeDate
-              VSCode.renderVSCodeAction emaAction $ mkVSCodeAction model $ VSCode.EditNode node
+              H.div ! A.class_ "space-x-2" $ do
+                VSCode.renderVSCodeAction emaAction $ mkVSCodeAction model $ VSCode.EditNode node
+                VSCode.renderVSCodeAction emaAction $ mkVSCodeAction model $ VSCode.NewNode (model ^. modelNextID) (Just node)
           Markdown.renderPandoc childPandoc
 
 mkVSCodeAction :: Model -> VSCode.Action -> VSCode.VSCodeAction
