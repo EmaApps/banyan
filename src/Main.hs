@@ -52,7 +52,7 @@ render act model = \case
     -- The argument `fp` refers to the absolute path to the static file.
     case Map.lookup fp (model ^. Model.modelFiles) of
       Nothing -> error "missing static file"
-      Just absPath -> Ema.AssetStatic absPath
+      Just (_, absPath) -> Ema.AssetStatic absPath
   Right r ->
     -- Generate a Html route; hot-reload is enabled.
     Ema.AssetGenerated Ema.Html $ View.renderHtml act model r
