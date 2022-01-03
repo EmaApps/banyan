@@ -99,7 +99,7 @@ renderLayout model top sidebar main = do
     H.div ! A.class_ "container mx-auto max-w-screen-md" $ do
       H.div ! A.class_ "flex flex-col mt-2" $ do
         H.div ! A.id "top" ! A.class_ "border-2 p-1 rounded text-center" $ top
-        H.div ! A.class_ "flex flex-row pt-2 columns-3" $ do
+        H.div ! A.class_ "flex flex-row pt-2" $ do
           H.div ! A.id "sidebar" $ sidebar
           H.div ! A.id "main" $ main
       renderFooter model

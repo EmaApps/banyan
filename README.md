@@ -36,8 +36,8 @@ Untriaged (as issues):
 - [ ] Wikilink support (for referencing other nodes.)
 - Use tailwind official
   - [x] Add default layer, and add style.css to it.
-  - [ ] Nix'ify package.json
-    - [ ] Call `npx` from Haskell via staticWhich? Or write package.json globally and use 'npm dev run'
+  - [x] Nix'ify package.json
+  - [ ] flake.nix: add script to call tailwind (watch or once)
 
 Compensating for lack of interactive web client:
 
