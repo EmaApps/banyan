@@ -1,9 +1,8 @@
 {
   description = "Banyan";
   inputs = {
-    emanote.url = "github:srid/emanote/master";
-    ema.follows = "emanote/ema";
-    nixpkgs.follows = "emanote/nixpkgs";
+    banyan-emanote.url = "github:srid/emanote/master";
+    nixpkgs.follows = "banyan-emanote/nixpkgs";
 
     NanoID = {
       url = "github:srid/NanoID/srid";
@@ -57,8 +56,8 @@
             root = pkgs.lib.cleanSourceWith { inherit filter name; src = ./.; };
             withHoogle = false;
             overrides = self: super: with pkgs.haskell.lib; {
-              ema = inputs.ema.defaultPackage.${system};
-              emanote = inputs.emanote.defaultPackage.${system};
+              ema = inputs.banyan-emanote.inputs.ema.defaultPackage.${system};
+              emanote = inputs.banyan-emanote.defaultPackage.${system};
               NanoID = self.callCabal2nix "NanoID" inputs.NanoID { };
             };
             modifier = drv:
