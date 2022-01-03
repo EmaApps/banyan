@@ -34,16 +34,16 @@ contentDir = "content"
 
 exe :: IO ()
 exe =
-  Ema.runEma render $ \_act model -> do
+  Ema.runEma render $ \act model -> do
     let layers = Loc.userLayers (one contentDir)
     model0 <- Model.emptyModel contentDir
     Emanote.emanate
       layers
-      Patch.watching
+      (Patch.watching act)
       Patch.ignoring
       model
       model0
-      (\a b -> Patch.patchModel a b . fmap (Loc.locResolve . head))
+      (\a b -> Patch.patchModel (model0 ^. Model.modelBaseDir) a b . fmap (Loc.locResolve . head))
 
 render :: Ema.CLI.Action -> Model -> Either FilePath Route -> Ema.Asset LByteString
 render act model = \case

@@ -3,25 +3,39 @@ module Banyan.Model.Patch where
 import Banyan.ID (parseIDFileName)
 import qualified Banyan.Markdown as Markdown
 import Banyan.Model
-import Control.Lens.Operators ((^.))
+import Banyan.Model.Hash
+import Data.Dependent.Sum
+import Data.Some (Some (Some), withSome)
+import qualified Ema.CLI
 import qualified Ema.Helper.FileSystem as EmaFS
 import System.FilePath ((</>))
 import System.FilePattern (FilePattern)
 
-data FileType = FTMd | FTStatic
+data FileType = FTMd | FTStatic (Some HashMode)
   deriving (Eq, Show, Ord)
 
-watching :: [(FileType, FilePattern)]
-watching =
+watching :: Ema.CLI.Action -> [(FileType, FilePattern)]
+watching emaAction =
   [ (FTMd, "*.md"),
-    (FTStatic, "*")
+    (FTStatic (Some HashContents), "*.css"),
+    (FTStatic fastHashMode, "*")
   ]
+  where
+    fastHashMode = case emaAction of
+      -- In live server, try not to hash unless necessary.
+      Ema.CLI.Run -> Some HashUUID
+      -- All static file URLs are hashed in generated site, to prevent stale
+      -- browser cache.
+      _ -> Some HashContents
 
 ignoring :: [FilePattern]
 ignoring = mempty
 
 patchModel ::
   MonadIO m =>
+  -- | Base directory
+  -- TODO: This is hacky. Instead of Ema support monadic `Model -> m Model`?
+  FilePath ->
   -- | Type of file being patched.
   FileType ->
   -- | Relative path of the file.
@@ -30,7 +44,7 @@ patchModel ::
   -- exists).
   EmaFS.FileAction FilePath ->
   m (Model -> Model)
-patchModel ftype fp action =
+patchModel baseDir ftype fp action =
   fmap (maybe id (. modelClearError fp)) . runMaybeT $ do
     case ftype of
       FTMd -> do
@@ -46,8 +60,10 @@ patchModel ftype fp action =
                 (modelAdd uuid)
           EmaFS.Delete -> do
             pure $ modelDel uuid
-      FTStatic -> case action of
+      FTStatic hashMode -> case action of
         EmaFS.Refresh _ _ -> do
-          pure $ \model -> modelAddFile fp (model ^. modelBaseDir </> fp) model
+          let absPath = baseDir </> fp
+          hash :: FileHash <- withSome hashMode $ \m -> (m ==>) <$> computeHash m absPath
+          pure $ modelAddFile hash fp absPath
         EmaFS.Delete ->
           pure $ modelDelFile fp

@@ -62,6 +62,12 @@ executable banyan
     , text
     , time
     , unliftio
+    , some 
+    , constraints-extras 
+    , dependent-sum 
+    , dependent-sum-template 
+    , dependent-map
+    , pureMD5
 
   mixins:
     base hiding (Prelude),
@@ -91,6 +97,7 @@ executable banyan
     Banyan.ID
     Banyan.Markdown
     Banyan.Model
+    Banyan.Model.Hash
     Banyan.Model.Patch
     Banyan.Route
     Banyan.VSCode
