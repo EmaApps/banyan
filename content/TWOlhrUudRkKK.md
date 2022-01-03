@@ -10,4 +10,4 @@ So banyan user will not have to be running Tailwind watcher. For apps like Emano
 1. Dev-time Tailwind watcher
 2. Run-time Tailwind watcher
 
-(1) is simpler to implement, and should be sufficient for most Ema apps. But Emanote will need (2), which also brings in a long-running nodeJS process into user's machine.
+No. 1 is simpler to implement, and should be sufficient for most Ema apps. But Emanote will need No. 2, which also brings in a long-running nodeJS process into user's machine.
