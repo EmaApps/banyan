@@ -24,7 +24,7 @@ jobs:
           echo "::set-output name=docker-img::${DOCKERIMG}"
       - name: Upload docker image tgz
         uses: actions/upload-artifact@v2
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/tailwind-official'
         with:
           name: docker-img
           retention-days: 1
@@ -52,7 +52,7 @@ jobs:
   website:
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/tailwind-official'
     steps:
       - uses: actions/checkout@v2
       - name: Download docker image
