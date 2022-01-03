@@ -8,16 +8,6 @@ Like [Wind of change](https://windofchange.me), but using the tree model, and as
 
 ```
 bin/run
-# Run this in different terminal
-cd tailwind && make
-```
-
-### NodeJS thingies
-
-To update nix scripts,
-
-```
-cd tailwind && nix run nixpkgs#nodePackages.node2nix -- --development
 ```
 
 ## Notes
@@ -42,10 +32,6 @@ Untriaged (as issues):
 
 - [ ] Breadcrumbs
 - [ ] Wikilink support (for referencing other nodes.)
-- Use tailwind official
-  - [x] Add default layer, and add style.css to it.
-  - [x] Nix'ify package.json
-  - [ ] flake.nix: add script to call tailwind (watch or once)
 
 Compensating for lack of interactive web client:
 

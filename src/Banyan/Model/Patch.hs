@@ -4,11 +4,10 @@ import Banyan.ID (parseIDFileName)
 import qualified Banyan.Markdown as Markdown
 import Banyan.Model
 import Banyan.Model.Hash
-import Data.Dependent.Sum
+import Data.Dependent.Sum ((==>))
 import Data.Some (Some (Some), withSome)
 import qualified Ema.CLI
 import qualified Ema.Helper.FileSystem as EmaFS
-import System.FilePath ((</>))
 import System.FilePattern (FilePattern)
 
 data FileType = FTMd | FTStatic (Some HashMode)

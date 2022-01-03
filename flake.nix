@@ -72,6 +72,9 @@
                   haskell-language-server
                   ormolu
                   pkgs.nixpkgs-fmt
+                  # For top-level package.json and bin/run
+                  pkgs.nodejs
+                  pkgs.nodePackages.concurrently
                 ]);
           };
       in
