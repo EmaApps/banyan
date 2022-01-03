@@ -7,8 +7,6 @@ maintainer:         srid@srid.ca
 author:             Sridhar Ratnakumar
 category:           Web
 
--- TODO: add input.css here, and use it correctly.
-
 -- A short (one-line) description of the package.
 -- synopsis:
 
@@ -22,7 +20,7 @@ extra-source-files:
   LICENSE
   README.md
 
-data-dir: default 
+data-dir:           default 
 data-files:
   banyan.svg
   style.css
@@ -30,18 +28,20 @@ data-files:
 executable banyan
   build-depends:
     , aeson
-    , random
-    , uuid
     , algebraic-graphs
     , async
     , base
     , blaze-html
     , blaze-markup
     , bytestring
+    , constraints-extras
     , containers
     , data-default
+    , dependent-map
+    , dependent-sum
+    , dependent-sum-template
     , directory
-    , ema                 >=0.3.0.1
+    , ema                     >=0.3.0.1
     , emanote
     , filepath
     , filepattern
@@ -49,17 +49,20 @@ executable banyan
     , ixset-typed
     , lens
     , lvar
-    , modern-uri
     , megaparsec
+    , modern-uri
     , monad-logger
     , mwc-random
     , NanoID
     , neat-interpolation
     , pandoc-types
     , parser-combinators
+    , pureMD5
+    , random
     , relude
     , safe-exceptions
     , shower
+    , some
     , tagged
     , tasty
     , tasty-hedgehog
@@ -67,12 +70,7 @@ executable banyan
     , text
     , time
     , unliftio
-    , some 
-    , constraints-extras 
-    , dependent-sum 
-    , dependent-sum-template 
-    , dependent-map
-    , pureMD5
+    , uuid
 
   mixins:
     base hiding (Prelude),
@@ -105,9 +103,10 @@ executable banyan
     Banyan.Model.Hash
     Banyan.Model.Patch
     Banyan.Route
-    Banyan.VSCode
     Banyan.View
     Banyan.View.Common
     Banyan.View.Sidebar
+    Banyan.VSCode
     Paths_banyan
-  autogen-modules: Paths_banyan
+
+  autogen-modules:    Paths_banyan

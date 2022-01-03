@@ -70,7 +70,9 @@ parseMarkdown fp = do
 
 renderPandoc :: Pandoc -> H.Html
 renderPandoc (Pandoc _meta blocks) =
-  mapM_ rpBlock blocks
+  -- TODO: replace this whole rendering stuff with https://tailwindcss.com/blog/tailwindcss-typography-v0-5#html-based-customization-api
+  H.div ! A.class_ "prose" $ do
+    mapM_ rpBlock blocks
 
 rpBlock :: B.Block -> H.Html
 rpBlock = \case

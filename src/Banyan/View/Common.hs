@@ -10,7 +10,7 @@ import qualified Text.Blaze.Html5.Attributes as A
 routeElemUnlessHere :: Model -> Route -> Either FilePath Route -> H.Html -> H.Html
 routeElemUnlessHere model hereR (r' :: Either FilePath Route) =
   if r' == Right hereR
-    then H.a ! A.class_ "font-semibold"
+    then H.a ! A.class_ "font-semibold underline decoration-2 decoration-green-500 decoration-wavy"
     else routeElem model r'
 
 routeElem :: Model -> Either FilePath Route -> H.Html -> H.Html

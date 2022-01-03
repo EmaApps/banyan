@@ -4,4 +4,4 @@ parent: PjorLl0gmEykt
 title: Tailwind
 ---
 
-I'm working on using Tailwind 3.0 official builder. This brings in nodeJS to the build process.
+Banyan now uses Tailwind 3.0 to build the CSS, both in live server and during static site generation. This does add nodeJS as our dev dependencuy, but on the plus side we get all the cool new features of Tailwind (like `print:hidden`).
