@@ -9,7 +9,7 @@ Like [Wind of change](https://windofchange.me), but using the tree model, and as
 ```
 bin/run
 # Run this in different terminal
-cd node && make
+cd tailwind && make
 ```
 
 ### NodeJS thingies
@@ -17,7 +17,7 @@ cd node && make
 To update nix scripts,
 
 ```
-cd node && node2nix --development
+cd tailwind && nix run nixpkgs#nodePackages.node2nix -- --development
 ```
 
 ## Notes
