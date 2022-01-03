@@ -7,6 +7,8 @@ maintainer:         srid@srid.ca
 author:             Sridhar Ratnakumar
 category:           Web
 
+-- TODO: add input.css here, and use it correctly.
+
 -- A short (one-line) description of the package.
 -- synopsis:
 
@@ -23,6 +25,8 @@ extra-source-files:
 executable banyan
   build-depends:
     , aeson
+    , random
+    , uuid
     , algebraic-graphs
     , async
     , base

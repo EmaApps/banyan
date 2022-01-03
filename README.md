@@ -8,6 +8,8 @@ Like [Wind of change](https://windofchange.me), but using the tree model, and as
 
 ```
 bin/run
+# Run this in different terminal
+cd tailwind && make
 ```
 
 ## Notes
@@ -32,6 +34,11 @@ Untriaged (as issues):
 
 - [ ] Breadcrumbs
 - [ ] Wikilink support (for referencing other nodes.)
+- Use tailwind official
+  - [ ] Add default layer, and add input.css / tailwind.config.js to it.
+  - [ ] Nix'ify package.json
+    - [ ] Call `npx` from Haskell via staticWhich
+  - [ ] Allow user to override input.css and tailwind.config.js
 
 Compensating for lack of interactive web client:
 

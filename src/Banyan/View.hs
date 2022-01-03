@@ -11,15 +11,17 @@ import Banyan.View.Common (routeElem)
 import qualified Banyan.View.Sidebar as Sidebar
 import Control.Lens.Operators ((^.))
 import qualified Data.Map.Strict as Map
+import Data.UUID.V4
 import qualified Ema.CLI
 import qualified Ema.Helper.Tailwind as Tailwind
+import System.IO.Unsafe
 import Text.Blaze.Html5 ((!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 
 renderHtml :: Ema.CLI.Action -> Model -> Route -> LByteString
 renderHtml emaAction model r =
-  Tailwind.layoutWith "en" "UTF-8" (Tailwind.twindShim emaAction) (H.title "Banyan" >> H.base ! A.href "/" >> H.link ! A.rel "shortcut icon" ! A.href "banyan.svg" ! A.type_ "image/svg") $
+  Tailwind.layoutWith "en" "UTF-8" mempty renderHead $
     renderLayout
       model
       (H.header ! A.class_ "flex items-center justify-center border-b-4 border-green-500" $ H.a ! A.href "https://github.com/srid/banyan" $ H.img ! A.class_ "w-8" ! A.src "/banyan.svg")
@@ -56,6 +58,15 @@ renderHtml emaAction model r =
       RIndex -> Nothing
       RNode nid -> Just nid
 
+renderHead :: H.Html
+renderHead = do
+  H.title "Banyan"
+  H.base ! A.href "/"
+  H.link ! A.rel "shortcut icon" ! A.href "banyan.svg" ! A.type_ "image/svg"
+  -- TODO: do this in model.
+  let uuid = unsafePerformIO nextRandom
+  H.link ! A.rel "stylesheet" ! A.href ("style.css?tok=" <> show uuid)
+
 renderListing :: Ema.CLI.Action -> Model -> [G.NodeID] -> H.Html
 renderListing emaAction model nodes = do
   forM_ nodes $ \node ->
@@ -87,11 +98,11 @@ mkVSCodeAction model =
 
 renderLayout :: Model -> H.Html -> H.Html -> H.Html -> H.Html
 renderLayout model top sidebar main = do
-  H.body ! A.class_ "overflow-y-scroll bg-gray-200" $ do
+  H.body ! A.class_ "overflow-y-scroll bg-green-200" $ do
     H.div ! A.class_ "container mx-auto max-w-screen-md" $ do
       H.div ! A.class_ "flex flex-col mt-2" $ do
         H.div ! A.id "top" ! A.class_ "border-2 p-1 rounded text-center" $ top
-        H.div ! A.class_ "flex flex-row pt-2" $ do
+        H.div ! A.class_ "flex flex-row pt-2 columns-3" $ do
           H.div ! A.id "sidebar" $ sidebar
           H.div ! A.id "main" $ main
       renderFooter model
