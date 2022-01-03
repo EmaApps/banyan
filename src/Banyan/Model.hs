@@ -7,9 +7,11 @@ import qualified Algebra.Graph.AdjacencyMap as AM
 import qualified Banyan.Graph as G
 import Banyan.ID (NodeID, randomId)
 import Banyan.Markdown (Meta (..), Pandoc)
+import Banyan.Model.Hash
 import Control.Lens.Combinators (view)
 import Control.Lens.Operators ((%~), (.~), (^.))
 import Control.Lens.TH (makeLenses)
+import Data.Dependent.Sum
 import qualified Data.Map.Strict as Map
 import System.FilePath ((-<.>), (</>))
 import UnliftIO.Directory (makeAbsolute)
@@ -23,7 +25,7 @@ data Model = Model
   { _modelBaseDir :: FilePath,
     _modelNodes :: Map NodeID Node,
     _modelGraph :: AM.AdjacencyMap NodeID,
-    _modelFiles :: Map FilePath FilePath,
+    _modelFiles :: Map FilePath (FileHash, FilePath),
     _modelNextID :: NodeID,
     _modelErrors :: Map FilePath Error
   }
@@ -68,9 +70,21 @@ modelLookup :: NodeID -> Model -> Maybe Node
 modelLookup k =
   Map.lookup k . view modelNodes
 
-modelAddFile :: FilePath -> FilePath -> Model -> Model
-modelAddFile fp absPath =
-  modelFiles %~ Map.insert fp absPath
+modelLookupFile :: FilePath -> Model -> Maybe (FileHash, FilePath)
+modelLookupFile fp model = do
+  Map.lookup fp $ model ^. modelFiles
+
+-- | Return a hashed URL to file, where the hash changes if Haskell process was
+-- restarted or the underyling file has been modified since last use.
+modelFileUrl :: FilePath -> Model -> Maybe Text
+modelFileUrl fp model = do
+  (h, _) <- modelLookupFile fp model
+  let q = "?" <> hashText h
+  pure $ toText fp <> q
+
+modelAddFile :: DSum HashMode Identity -> FilePath -> FilePath -> Model -> Model
+modelAddFile hash fp absPath model =
+  model & modelFiles %~ Map.insert fp (hash, absPath)
 
 modelDelFile :: FilePath -> Model -> Model
 modelDelFile fp =

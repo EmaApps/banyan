@@ -19,7 +19,7 @@ import qualified Text.Blaze.Html5.Attributes as A
 
 renderHtml :: Ema.CLI.Action -> Model -> Route -> LByteString
 renderHtml emaAction model r =
-  Tailwind.layoutWith "en" "UTF-8" (Tailwind.twindShim emaAction) (H.title "Banyan" >> H.base ! A.href "/" >> H.link ! A.rel "shortcut icon" ! A.href "banyan.svg" ! A.type_ "image/svg") $
+  Tailwind.layoutWith "en" "UTF-8" mempty (renderHead model) $
     renderLayout
       model
       (H.header ! A.class_ "flex items-center justify-center border-b-4 border-green-500" $ H.a ! A.href "https://github.com/srid/banyan" $ H.img ! A.class_ "w-8" ! A.src "/banyan.svg")
@@ -56,6 +56,14 @@ renderHtml emaAction model r =
       RIndex -> Nothing
       RNode nid -> Just nid
 
+renderHead :: Model -> H.Html
+renderHead model = do
+  H.title "Banyan"
+  H.base ! A.href "/"
+  H.link ! A.rel "shortcut icon" ! A.href "banyan.svg" ! A.type_ "image/svg"
+  let cssUrl = fromMaybe (error "style.css missing") $ modelFileUrl "style.css" model
+  H.link ! A.rel "stylesheet" ! A.href (H.toValue cssUrl)
+
 renderListing :: Ema.CLI.Action -> Model -> [G.NodeID] -> H.Html
 renderListing emaAction model nodes = do
   forM_ nodes $ \node ->
@@ -90,9 +98,9 @@ renderLayout model top sidebar main = do
   H.body ! A.class_ "overflow-y-scroll bg-gray-200" $ do
     H.div ! A.class_ "container mx-auto max-w-screen-md" $ do
       H.div ! A.class_ "flex flex-col mt-2" $ do
-        H.div ! A.id "top" ! A.class_ "border-2 p-1 rounded text-center" $ top
+        H.div ! A.id "top" ! A.class_ "border-2 p-1 rounded text-center print:hidden" $ top
         H.div ! A.class_ "flex flex-row pt-2" $ do
-          H.div ! A.id "sidebar" $ sidebar
+          H.div ! A.id "sidebar" ! A.class_ "print:hidden" $ sidebar
           H.div ! A.id "main" $ main
       renderFooter model
 

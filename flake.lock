@@ -17,6 +17,34 @@
         "type": "github"
       }
     },
+    "banyan-emanote": {
+      "inputs": {
+        "ema": "ema",
+        "flake-compat": "flake-compat_2",
+        "flake-utils": "flake-utils_3",
+        "heist": "heist",
+        "nixpkgs": [
+          "banyan-emanote",
+          "ema",
+          "nixpkgs"
+        ],
+        "windicss": "windicss"
+      },
+      "locked": {
+        "lastModified": 1641144557,
+        "narHash": "sha256-tArzKu85c99VFDIvNp4c6JttFW/vcHtS2pKpFouObcY=",
+        "owner": "srid",
+        "repo": "emanote",
+        "rev": "ea535f5949543a90671674807d530f88a6d74788",
+        "type": "github"
+      },
+      "original": {
+        "owner": "srid",
+        "ref": "master",
+        "repo": "emanote",
+        "type": "github"
+      }
+    },
     "ema": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -36,34 +64,6 @@
         "owner": "srid",
         "ref": "master",
         "repo": "ema",
-        "type": "github"
-      }
-    },
-    "emanote": {
-      "inputs": {
-        "ema": "ema",
-        "flake-compat": "flake-compat_2",
-        "flake-utils": "flake-utils_3",
-        "heist": "heist",
-        "nixpkgs": [
-          "emanote",
-          "ema",
-          "nixpkgs"
-        ],
-        "windicss": "windicss"
-      },
-      "locked": {
-        "lastModified": 1641144557,
-        "narHash": "sha256-tArzKu85c99VFDIvNp4c6JttFW/vcHtS2pKpFouObcY=",
-        "owner": "srid",
-        "repo": "emanote",
-        "rev": "ea535f5949543a90671674807d530f88a6d74788",
-        "type": "github"
-      },
-      "original": {
-        "owner": "srid",
-        "ref": "master",
-        "repo": "emanote",
         "type": "github"
       }
     },
@@ -244,15 +244,11 @@
     "root": {
       "inputs": {
         "NanoID": "NanoID",
-        "ema": [
-          "emanote",
-          "ema"
-        ],
-        "emanote": "emanote",
+        "banyan-emanote": "banyan-emanote",
         "flake-compat": "flake-compat_3",
         "flake-utils": "flake-utils_4",
         "nixpkgs": [
-          "emanote",
+          "banyan-emanote",
           "nixpkgs"
         ]
       }

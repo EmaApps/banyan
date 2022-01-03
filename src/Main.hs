@@ -13,6 +13,7 @@ import qualified Ema
 import qualified Ema.CLI
 import qualified Emanote
 import qualified Emanote.Source.Loc as Loc
+import qualified Paths_banyan
 import qualified System.Environment as Env
 import qualified Test.Tasty as T
 
@@ -34,12 +35,13 @@ contentDir = "content"
 
 exe :: IO ()
 exe =
-  Ema.runEma render $ \_act model -> do
-    let layers = Loc.userLayers (one contentDir)
+  Ema.runEma render $ \act model -> do
+    defaultLayer <- Loc.defaultLayer <$> liftIO Paths_banyan.getDataDir
+    let layers = one defaultLayer <> Loc.userLayers (one contentDir)
     model0 <- Model.emptyModel contentDir
     Emanote.emanate
       layers
-      Patch.watching
+      (Patch.watching act)
       Patch.ignoring
       model
       model0
@@ -52,7 +54,7 @@ render act model = \case
     -- The argument `fp` refers to the absolute path to the static file.
     case Map.lookup fp (model ^. Model.modelFiles) of
       Nothing -> error "missing static file"
-      Just absPath -> Ema.AssetStatic absPath
+      Just (_, absPath) -> Ema.AssetStatic absPath
   Right r ->
     -- Generate a Html route; hot-reload is enabled.
     Ema.AssetGenerated Ema.Html $ View.renderHtml act model r

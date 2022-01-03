@@ -1,0 +1,9 @@
+{
+  "name": "banyan",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently npm:banyan:*",
+    "banyan:tailwind": "cd tailwind && make",
+    "banyan:haskell": "bin/run-haskell"
+  }
+}

@@ -3,19 +3,28 @@ module Banyan.Model.Patch where
 import Banyan.ID (parseIDFileName)
 import qualified Banyan.Markdown as Markdown
 import Banyan.Model
-import Control.Lens.Operators ((^.))
+import Banyan.Model.Hash
+import Data.Dependent.Sum ((==>))
+import Data.Some (Some (Some), withSome)
+import qualified Ema.CLI
 import qualified Ema.Helper.FileSystem as EmaFS
-import System.FilePath ((</>))
 import System.FilePattern (FilePattern)
 
-data FileType = FTMd | FTStatic
+data FileType = FTMd | FTStatic (Some HashMode)
   deriving (Eq, Show, Ord)
 
-watching :: [(FileType, FilePattern)]
-watching =
+watching :: Ema.CLI.Action -> [(FileType, FilePattern)]
+watching emaAction =
   [ (FTMd, "*.md"),
-    (FTStatic, "*")
+    (FTStatic hashMode, "*")
   ]
+  where
+    hashMode = case emaAction of
+      -- Race condition cum browser caching can make content hashed URLs
+      -- incorrect in live-server mode. So we use an unique ID to be safe.
+      Ema.CLI.Run -> Some HashUUID
+      -- To invalidate browser cache when accessing the newly generated site.
+      _ -> Some HashContents
 
 ignoring :: [FilePattern]
 ignoring = mempty
@@ -46,8 +55,9 @@ patchModel ftype fp action =
                 (modelAdd uuid)
           EmaFS.Delete -> do
             pure $ modelDel uuid
-      FTStatic -> case action of
-        EmaFS.Refresh _ _ -> do
-          pure $ \model -> modelAddFile fp (model ^. modelBaseDir </> fp) model
+      FTStatic hashMode -> case action of
+        EmaFS.Refresh _ absPath -> do
+          hash :: FileHash <- withSome hashMode $ \m -> (m ==>) <$> computeHash m absPath
+          pure $ modelAddFile hash fp absPath
         EmaFS.Delete ->
           pure $ modelDelFile fp
