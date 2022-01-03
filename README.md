@@ -35,10 +35,9 @@ Untriaged (as issues):
 - [ ] Breadcrumbs
 - [ ] Wikilink support (for referencing other nodes.)
 - Use tailwind official
-  - [ ] Add default layer, and add input.css / tailwind.config.js to it.
+  - [x] Add default layer, and add style.css to it.
   - [ ] Nix'ify package.json
-    - [ ] Call `npx` from Haskell via staticWhich
-  - [ ] Allow user to override input.css and tailwind.config.js
+    - [ ] Call `npx` from Haskell via staticWhich? Or write package.json globally and use 'npm dev run'
 
 Compensating for lack of interactive web client:
 

@@ -13,6 +13,7 @@ import qualified Ema
 import qualified Ema.CLI
 import qualified Emanote
 import qualified Emanote.Source.Loc as Loc
+import qualified Paths_banyan
 import qualified System.Environment as Env
 import qualified Test.Tasty as T
 
@@ -35,7 +36,8 @@ contentDir = "content"
 exe :: IO ()
 exe =
   Ema.runEma render $ \act model -> do
-    let layers = Loc.userLayers (one contentDir)
+    defaultLayer <- Loc.defaultLayer <$> liftIO Paths_banyan.getDataDir
+    let layers = one defaultLayer <> Loc.userLayers (one contentDir)
     model0 <- Model.emptyModel contentDir
     Emanote.emanate
       layers
@@ -43,7 +45,7 @@ exe =
       Patch.ignoring
       model
       model0
-      (\a b -> Patch.patchModel (model0 ^. Model.modelBaseDir) a b . fmap (Loc.locResolve . head))
+      (\a b -> Patch.patchModel a b . fmap (Loc.locResolve . head))
 
 render :: Ema.CLI.Action -> Model -> Either FilePath Route -> Ema.Asset LByteString
 render act model = \case

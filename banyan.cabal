@@ -22,6 +22,11 @@ extra-source-files:
   LICENSE
   README.md
 
+data-dir: default 
+data-files:
+  banyan.svg
+  style.css
+
 executable banyan
   build-depends:
     , aeson
@@ -104,3 +109,5 @@ executable banyan
     Banyan.View
     Banyan.View.Common
     Banyan.View.Sidebar
+    Paths_banyan
+  autogen-modules: Paths_banyan

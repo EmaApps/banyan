@@ -17,15 +17,14 @@ data FileType = FTMd | FTStatic (Some HashMode)
 watching :: Ema.CLI.Action -> [(FileType, FilePattern)]
 watching emaAction =
   [ (FTMd, "*.md"),
-    (FTStatic (Some HashContents), "*.css"),
-    (FTStatic fastHashMode, "*")
+    (FTStatic hashMode, "*")
   ]
   where
-    fastHashMode = case emaAction of
-      -- In live server, try not to hash unless necessary.
+    hashMode = case emaAction of
+      -- Race condition cum browser caching can make content hashed URLs
+      -- incorrect in live-server mode. So we use an unique ID to be safe.
       Ema.CLI.Run -> Some HashUUID
-      -- All static file URLs are hashed in generated site, to prevent stale
-      -- browser cache.
+      -- To invalidate browser cache when accessing the newly generated site.
       _ -> Some HashContents
 
 ignoring :: [FilePattern]
@@ -33,9 +32,6 @@ ignoring = mempty
 
 patchModel ::
   MonadIO m =>
-  -- | Base directory
-  -- TODO: This is hacky. Instead of Ema support monadic `Model -> m Model`?
-  FilePath ->
   -- | Type of file being patched.
   FileType ->
   -- | Relative path of the file.
@@ -44,7 +40,7 @@ patchModel ::
   -- exists).
   EmaFS.FileAction FilePath ->
   m (Model -> Model)
-patchModel baseDir ftype fp action =
+patchModel ftype fp action =
   fmap (maybe id (. modelClearError fp)) . runMaybeT $ do
     case ftype of
       FTMd -> do
@@ -61,8 +57,7 @@ patchModel baseDir ftype fp action =
           EmaFS.Delete -> do
             pure $ modelDel uuid
       FTStatic hashMode -> case action of
-        EmaFS.Refresh _ _ -> do
-          let absPath = baseDir </> fp
+        EmaFS.Refresh _ absPath -> do
           hash :: FileHash <- withSome hashMode $ \m -> (m ==>) <$> computeHash m absPath
           pure $ modelAddFile hash fp absPath
         EmaFS.Delete ->
