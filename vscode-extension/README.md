@@ -2,7 +2,7 @@
 
 Demo: `open 'vscode://srid.banyan/new/blah?parent=foobar'`
 
-Create package: `./node_modules/.bin/vsce package`.
+Create package with `npx vsce package`, and install it by right clicking the .vsix file in VSCode.
 
 ## Features
 
