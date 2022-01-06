@@ -2,7 +2,9 @@
   description = "Banyan";
   inputs = {
     banyan-emanote.url = "github:srid/emanote/master";
-    nixpkgs.follows = "banyan-emanote/nixpkgs";
+    # nixpkgs.follows = "banyan-emanote/nixpkgs";
+    # Until this is merged: https://github.com/NixOS/nixpkgs/pull/153677
+    nixpkgs.url = "github:srid/nixpkgs/srid/tailwindcss-plugins";
 
     NanoID = {
       url = "github:srid/NanoID/srid";
@@ -71,9 +73,14 @@
                   haskell-language-server
                   ormolu
                   pkgs.nixpkgs-fmt
-                  # For top-level package.json and bin/run
-                  pkgs.nodejs
+                  # For top-level package.json and bin/buildcss
                   pkgs.nodePackages.concurrently
+                  pkgs.nodePackages.tailwindcss
+                  pkgs.nodePackages.postcss
+                  pkgs.nodePackages."@tailwindcss/typography"
+                  pkgs.nodePackages."@tailwindcss/aspect-ratio"
+                  pkgs.nodePackages."@tailwindcss/forms"
+                  pkgs.nodePackages."@tailwindcss/line-clamp"
                 ]);
           };
       in

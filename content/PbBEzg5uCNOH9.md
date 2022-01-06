@@ -3,7 +3,7 @@ date: 2022-01-03T16:08:20.719Z
 parent: Snlr2yxMG61oz
 ---
 
-node's `concurrently` is a decent package that mimick's `Procfile`.
+node's `concurrently` is a decent package that mimics `Procfile`.
 
 ```json
   "scripts": {

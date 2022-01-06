@@ -4,7 +4,7 @@ WIP: Tree of time.
 
 Like [wind of change](https://windofchange.me) (WOC), but using the tree model, and as a static site -- so there is no social aspect, for which you should still use WOC. I probably will begin using banyan primarily, and then cross-post its content to WOC for enabling discussions (until WOC gets tree model, exports & optional client-side encryption).
 
-Think of it has a more structured Zettelkasten with the notion of 'time streams' for each node.
+Think of it as a more structured Zettelkasten with the notion of 'time streams' for each node.
 
 ## Developing
 

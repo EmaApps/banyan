@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "concurrently npm:banyan:*",
-    "banyan:tailwind": "cd tailwind && exec make",
+    "banyan:tailwind": "exec bin/build-css -w",
     "banyan:haskell": "exec bin/run-haskell"
   }
 }
