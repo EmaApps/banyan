@@ -2,9 +2,7 @@
   description = "Banyan";
   inputs = {
     banyan-emanote.url = "github:srid/emanote/master";
-    # nixpkgs.follows = "banyan-emanote/nixpkgs";
-    # Until this is merged: https://github.com/NixOS/nixpkgs/pull/153677
-    nixpkgs.url = "github:srid/nixpkgs/srid/tailwindcss-plugins";
+    nixpkgs.follows = "banyan-emanote/nixpkgs";
 
     NanoID = {
       url = "github:srid/NanoID/srid";
@@ -23,6 +21,9 @@
         name = "banyan";
         overlays = [ ];
         pkgs = import nixpkgs { inherit system overlays; config.allowBroken = true; };
+        tailwindPkgs = import ./tailwind/default.nix {
+          inherit pkgs system;
+        };
         # Based on https://github.com/input-output-hk/daedalus/blob/develop/yarn2nix.nix#L58-L71
         filter = name: type:
           let
@@ -73,14 +74,20 @@
                   haskell-language-server
                   ormolu
                   pkgs.nixpkgs-fmt
-                  # For top-level package.json and bin/buildcss
-                  pkgs.nodePackages.concurrently
-                  pkgs.nodePackages.tailwindcss
-                  pkgs.nodePackages.postcss
-                  pkgs.nodePackages."@tailwindcss/typography"
-                  pkgs.nodePackages."@tailwindcss/aspect-ratio"
-                  pkgs.nodePackages."@tailwindcss/forms"
-                  pkgs.nodePackages."@tailwindcss/line-clamp"
+                  (
+                    let
+                      p = tailwindPkgs.package;
+                      node_modules = "${p}/lib/node_modules/banyon-tailwind/node_modules";
+                    in
+                    pkgs.writeShellScriptBin "tailwind"
+                      ''
+                        export NODE_PATH=${node_modules}
+                        exec ${node_modules}/.bin/tailwind $*
+                      ''
+                  )
+                  # Procfile 
+                  pkgs.goreman
+                  pkgs.foreman
                 ]);
           };
       in
