@@ -42,6 +42,7 @@ executable banyan
     , dependent-sum-template
     , directory
     , ema                     >=0.3.0.1
+    , which
     , emanote
     , filepath
     , filepattern
@@ -57,6 +58,7 @@ executable banyan
     , neat-interpolation
     , pandoc-types
     , pandoc
+    , process
     , parser-combinators
     , pureMD5
     , random

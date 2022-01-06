@@ -85,9 +85,6 @@
                         exec ${node_modules}/.bin/tailwind $*
                       ''
                   )
-                  # Procfile 
-                  pkgs.goreman
-                  pkgs.foreman
                 ]);
           };
       in
