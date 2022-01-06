@@ -61,7 +61,7 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
       - name: Generate website HTML 🔧
         run: |
-          (cd tailwind && make once)
+          bin/buildcss
           mkdir -p ./content/.ci/output
           docker load -i *docker-image-banyan.tar.gz
           docker run -e LANG=C.UTF-8 -e LC_ALL=C.UTF-8 -v $PWD/content:/data/content sridca/banyan banyan gen /data/content/.ci/output
