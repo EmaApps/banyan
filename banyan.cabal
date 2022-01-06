@@ -21,8 +21,7 @@ extra-source-files:
   README.md
 
 data-dir:           default 
-data-files:
-  banyan.svg
+data-files:         banyan.svg
 
 executable banyan
   build-depends:
@@ -41,7 +40,6 @@ executable banyan
     , dependent-sum-template
     , directory
     , ema                     >=0.3.0.1
-    , which
     , emanote
     , filepath
     , filepattern
@@ -55,10 +53,10 @@ executable banyan
     , mwc-random
     , NanoID
     , neat-interpolation
-    , pandoc-types
     , pandoc
-    , process
+    , pandoc-types
     , parser-combinators
+    , process
     , pureMD5
     , random
     , relude
@@ -73,6 +71,7 @@ executable banyan
     , time
     , unliftio
     , uuid
+    , which
 
   mixins:
     base hiding (Prelude),
@@ -105,6 +104,7 @@ executable banyan
     Banyan.Model.Hash
     Banyan.Model.Patch
     Banyan.Route
+    Banyan.Tailwind
     Banyan.View
     Banyan.View.Common
     Banyan.View.Sidebar
