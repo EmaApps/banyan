@@ -1,30 +1,38 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Banyan.Tailwind (buildCss) where
+module Banyan.Tailwind
+  ( runTailwindJIT,
+    runTailwindProduction,
+  )
+where
 
 import Control.Monad.Logger (MonadLogger, logInfoN)
-import qualified Ema.CLI
 import System.CPUTime (getCPUTime)
 import System.Directory (doesFileExist)
-import System.Process (readProcess)
 import System.Which (staticWhich)
 import Text.Printf (printf)
+import UnliftIO.Process (callProcess)
 
 tailwind :: FilePath
 tailwind = $(staticWhich "tailwind")
 
-buildCss :: (MonadIO m, MonadLogger m, HasCallStack) => Ema.CLI.Action -> m Text
-buildCss action = do
-  logInfoN "Running Tailwind compiler to build style.css"
-  let extraArgs =
-        case action of
-          Ema.CLI.Run -> []
-          _ -> ["--minify"]
+runTailwindJIT :: (MonadIO m, MonadLogger m) => m ()
+runTailwindJIT = do
+  callTailwind ["-i", "input.css", "-o", "content/style.css", "-w"]
+  error "Tailwind exited unexpectedly!"
+
+runTailwindProduction :: (MonadIO m, MonadLogger m) => m ()
+runTailwindProduction =
+  callTailwind ["-i", "input.css", "-o", "content/style.css", "--minify"]
+
+callTailwind :: (MonadIO m, MonadLogger m) => [String] -> m ()
+callTailwind args = do
+  logInfoN $ "Running Tailwind compiler with args: " <> show args
   liftIO (doesFileExist tailwind) >>= \case
     True ->
-      timeIt . liftIO $ do
-        toText <$> readProcess tailwind (["-i", "input.css"] <> extraArgs) ""
+      timeIt $ do
+        callProcess tailwind args
     False ->
       error $ "Tailwind compiler not found at " <> toText tailwind
 

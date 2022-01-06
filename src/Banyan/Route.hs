@@ -14,7 +14,6 @@ data Route
 data SiteRoute
   = SRHtml Route
   | SRStatic FilePath
-  | SRCss
   deriving (Show, Eq, Ord)
 
 instance Ema Model SiteRoute where
@@ -23,9 +22,7 @@ instance Ema Model SiteRoute where
     SRHtml r -> case r of
       RIndex -> "index.html"
       RNode uuid -> show uuid <> ".html"
-    SRCss -> "tailwind-generated.css"
   decodeRoute model = \case
-    "tailwind-generated.css" -> pure SRCss
     "index.html" -> pure $ SRHtml RIndex
     (parseIDFileName ".html" -> Just uuid) ->
       SRHtml (RNode uuid) <$ modelLookup uuid model
@@ -36,4 +33,3 @@ instance Ema Model SiteRoute where
     -- TODO: Don't generate pages for leaf nodes (they are not linked to)
     (SRHtml <$> RIndex : (RNode <$> Map.keys (m ^. modelNodes)))
       <> fmap SRStatic (Map.keys $ m ^. modelFiles)
-      <> one SRCss

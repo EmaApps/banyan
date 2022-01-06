@@ -6,6 +6,7 @@ import Banyan.Model (Model)
 import qualified Banyan.Model as Model
 import qualified Banyan.Model.Patch as Patch
 import Banyan.Route
+import Banyan.Tailwind (runTailwindJIT, runTailwindProduction)
 import qualified Banyan.View as View
 import Control.Lens.Operators ((^.))
 import qualified Data.Map.Strict as Map
@@ -16,6 +17,7 @@ import qualified Emanote.Source.Loc as Loc
 import qualified Paths_banyan
 import qualified System.Environment as Env
 import qualified Test.Tasty as T
+import UnliftIO.Async (concurrently_)
 
 main :: IO ()
 main = do
@@ -38,14 +40,21 @@ exe =
   Ema.runEma render $ \act model -> do
     defaultLayer <- Loc.defaultLayer <$> liftIO Paths_banyan.getDataDir
     let layers = one defaultLayer <> Loc.userLayers (one contentDir)
-    model0 <- Model.emptyModel act contentDir
-    Emanote.emanate
-      layers
-      (Patch.watching act)
-      Patch.ignoring
-      model
-      model0
-      (\a b -> Patch.patchModel a b . fmap (Loc.locResolve . head))
+    model0 <- Model.emptyModel contentDir
+    let runEmanate =
+          Emanote.emanate
+            layers
+            (Patch.watching act)
+            Patch.ignoring
+            model
+            model0
+            (\a b -> Patch.patchModel a b . fmap (Loc.locResolve . head))
+    case act of
+      Ema.CLI.Run ->
+        concurrently_ runTailwindJIT runEmanate
+      Ema.CLI.Generate _ -> do
+        runTailwindProduction
+        runEmanate
 
 render :: Ema.CLI.Action -> Model -> SiteRoute -> Ema.Asset LByteString
 render act model = \case
@@ -55,8 +64,6 @@ render act model = \case
     case Map.lookup fp (model ^. Model.modelFiles) of
       Nothing -> error "missing static file"
       Just (_, absPath) -> Ema.AssetStatic absPath
-  SRCss ->
-    Ema.AssetGenerated Ema.Other $ encodeUtf8 $ model ^. Model.modelCss
   SRHtml r ->
     -- Generate a Html route; hot-reload is enabled.
     Ema.AssetGenerated Ema.Html $ View.renderHtml act model r

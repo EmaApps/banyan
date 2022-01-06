@@ -7,7 +7,7 @@ import qualified Banyan.Markdown as Markdown
 import Banyan.Model
 import Banyan.Route
 import qualified Banyan.VSCode as VSCode
-import Banyan.View.Common (routeElem, routeHref)
+import Banyan.View.Common (routeElem)
 import qualified Banyan.View.Sidebar as Sidebar
 import Control.Lens.Operators ((^.))
 import Data.Digest.Pure.MD5 (md5)
@@ -63,7 +63,7 @@ renderHead model = do
   H.title "Banyan"
   H.base ! A.href "/"
   H.link ! A.rel "shortcut icon" ! A.href "banyan.svg" ! A.type_ "image/svg"
-  let cssUrl = Ema.routeUrl model SRCss <> "?" <> show (md5 $ encodeUtf8 $ model ^. modelCss)
+  let cssUrl = fromMaybe (error "style.css missing") $ modelFileUrl "style.css" model
   H.link ! A.rel "stylesheet" ! A.href (H.toValue cssUrl)
 
 renderListing :: Ema.CLI.Action -> Model -> [G.NodeID] -> H.Html
