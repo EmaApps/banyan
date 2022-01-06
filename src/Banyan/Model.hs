@@ -8,11 +8,14 @@ import qualified Banyan.Graph as G
 import Banyan.ID (NodeID, randomId)
 import Banyan.Markdown (Meta (..), Pandoc)
 import Banyan.Model.Hash
+import qualified Banyan.Tailwind as Tailwind
 import Control.Lens.Combinators (view)
 import Control.Lens.Operators ((%~), (.~), (^.))
 import Control.Lens.TH (makeLenses)
-import Data.Dependent.Sum
+import Control.Monad.Logger (MonadLogger)
+import Data.Dependent.Sum (DSum)
 import qualified Data.Map.Strict as Map
+import qualified Ema.CLI
 import System.FilePath ((-<.>), (</>))
 import UnliftIO.Directory (makeAbsolute)
 
@@ -23,6 +26,7 @@ data Error = BadGraph Text | BadMarkdown Text
 
 data Model = Model
   { _modelBaseDir :: FilePath,
+    _modelCss :: Text,
     _modelNodes :: Map NodeID Node,
     _modelGraph :: AM.AdjacencyMap NodeID,
     _modelFiles :: Map FilePath (FileHash, FilePath),
@@ -31,13 +35,15 @@ data Model = Model
   }
   deriving (Show)
 
-emptyModel :: MonadIO m => FilePath -> m Model
-emptyModel baseDir' = do
+emptyModel :: (MonadIO m, MonadLogger m) => Ema.CLI.Action -> FilePath -> m Model
+emptyModel action baseDir' = do
   rid <- randomId
   baseDir <- makeAbsolute baseDir'
+  css <- Tailwind.buildCss action
   pure $
     Model
       { _modelBaseDir = baseDir,
+        _modelCss = css,
         _modelNodes = Map.empty,
         _modelGraph = AM.empty,
         _modelFiles = Map.empty,

@@ -11,19 +11,29 @@ data Route
   | RNode NodeID
   deriving (Show, Eq, Ord)
 
-instance Ema Model (Either FilePath Route) where
-  encodeRoute _model =
-    either id $ \case
+data SiteRoute
+  = SRHtml Route
+  | SRStatic FilePath
+  | SRCss
+  deriving (Show, Eq, Ord)
+
+instance Ema Model SiteRoute where
+  encodeRoute _model = \case
+    SRStatic fp -> fp
+    SRHtml r -> case r of
       RIndex -> "index.html"
       RNode uuid -> show uuid <> ".html"
+    SRCss -> "tailwind-generated.css"
   decodeRoute model = \case
-    "index.html" -> Just $ Right RIndex
+    "tailwind-generated.css" -> pure SRCss
+    "index.html" -> pure $ SRHtml RIndex
     (parseIDFileName ".html" -> Just uuid) ->
-      Right (RNode uuid) <$ modelLookup uuid model
+      SRHtml (RNode uuid) <$ modelLookup uuid model
     fp -> do
       guard $ Map.member fp (model ^. modelFiles)
-      pure $ Left fp
+      pure $ SRStatic fp
   allRoutes m =
     -- TODO: Don't generate pages for leaf nodes (they are not linked to)
-    (Right <$> RIndex : (RNode <$> Map.keys (m ^. modelNodes)))
-      <> fmap Left (Map.keys $ m ^. modelFiles)
+    (SRHtml <$> RIndex : (RNode <$> Map.keys (m ^. modelNodes)))
+      <> fmap SRStatic (Map.keys $ m ^. modelFiles)
+      <> one SRCss

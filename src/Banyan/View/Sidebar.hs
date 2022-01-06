@@ -17,7 +17,7 @@ renderSidebar :: Model -> Route -> H.Html
 renderSidebar model hereR = do
   let forest = G.toTree $ model ^. modelGraph
   H.div ! A.class_ "border-r-2 md:h-full pr-4 mr-4" $ do
-    routeElemUnlessHere model hereR (Right RIndex) "Index"
+    routeElemUnlessHere model hereR (SRHtml RIndex) "Index"
     H.div ! A.class_ "" $ do
       forM_ forest $ \node ->
         renderNode model hereR True node
@@ -41,5 +41,5 @@ nodeLink model hereR nid =
       routeElemUnlessHere model hereR (nodeRoute nid) $ do
         H.toHtml nodeTitle
 
-nodeRoute :: NodeID -> Either FilePath Route
-nodeRoute = Right . RNode
+nodeRoute :: NodeID -> SiteRoute
+nodeRoute = SRHtml . RNode
