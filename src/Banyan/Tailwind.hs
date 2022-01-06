@@ -1,11 +1,14 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Banyan.Tailwind (buildCss) where
 
 import Control.Monad.Logger (MonadLogger, logInfoN)
 import qualified Ema.CLI
+import System.CPUTime (getCPUTime)
 import System.Process (readProcess)
 import System.Which (staticWhich)
+import Text.Printf (printf)
 
 tailwind :: FilePath
 tailwind = $(staticWhich "tailwind")
@@ -17,11 +20,14 @@ buildCss action = do
         case action of
           Ema.CLI.Run -> []
           _ -> ["--minify"]
-  -- TODO: Time this, since we are not using JIT (-w) mode.
-  liftIO $
-    toText
-      <$> readProcess
-        tailwind
-        -- FIXME: doin't want to write back to source, because that fails during gh-pages action (Docker!)
-        (["-i", "input.css"] <> extraArgs)
-        ""
+  timeIt . liftIO $ do
+    toText <$> readProcess tailwind (["-i", "input.css"] <> extraArgs) ""
+
+timeIt :: MonadIO m => m b -> m b
+timeIt m = do
+  t0 <- liftIO getCPUTime
+  !x <- m
+  t1 <- liftIO getCPUTime
+  let diff :: Double = fromIntegral (t1 - t0) / (10 ^ (9 :: Integer))
+  liftIO $ printf "Process duration: %0.3f ms\n" diff
+  pure $! x

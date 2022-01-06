@@ -10,7 +10,9 @@ import qualified Banyan.VSCode as VSCode
 import Banyan.View.Common (routeElem, routeHref)
 import qualified Banyan.View.Sidebar as Sidebar
 import Control.Lens.Operators ((^.))
+import Data.Digest.Pure.MD5 (md5)
 import qualified Data.Map.Strict as Map
+import qualified Ema
 import qualified Ema.CLI
 import qualified Ema.Helper.Tailwind as Tailwind
 import Text.Blaze.Html5 ((!))
@@ -61,7 +63,8 @@ renderHead model = do
   H.title "Banyan"
   H.base ! A.href "/"
   H.link ! A.rel "shortcut icon" ! A.href "banyan.svg" ! A.type_ "image/svg"
-  H.link ! A.rel "stylesheet" ! routeHref model SRCss
+  let cssUrl = Ema.routeUrl model SRCss <> "?" <> show (md5 $ encodeUtf8 $ model ^. modelCss)
+  H.link ! A.rel "stylesheet" ! A.href (H.toValue cssUrl)
 
 renderListing :: Ema.CLI.Action -> Model -> [G.NodeID] -> H.Html
 renderListing emaAction model nodes = do
