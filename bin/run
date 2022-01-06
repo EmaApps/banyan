@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 set -xe
 
-exec nix develop -c npm run dev
+# exec nix develop -c npm run dev
+exec nix develop -c foreman start
