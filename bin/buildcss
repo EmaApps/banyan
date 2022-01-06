@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -xe
+
+exec nix-shell --run "tailwindcss -i input.css -o ./default/style.css --minify $*"
