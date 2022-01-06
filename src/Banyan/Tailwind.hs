@@ -6,6 +6,7 @@ module Banyan.Tailwind (buildCss) where
 import Control.Monad.Logger (MonadLogger, logInfoN)
 import qualified Ema.CLI
 import System.CPUTime (getCPUTime)
+import System.Directory (doesFileExist)
 import System.Process (readProcess)
 import System.Which (staticWhich)
 import Text.Printf (printf)
@@ -13,15 +14,19 @@ import Text.Printf (printf)
 tailwind :: FilePath
 tailwind = $(staticWhich "tailwind")
 
-buildCss :: (MonadIO m, MonadLogger m) => Ema.CLI.Action -> m Text
+buildCss :: (MonadIO m, MonadLogger m, HasCallStack) => Ema.CLI.Action -> m Text
 buildCss action = do
   logInfoN "Running Tailwind compiler to build style.css"
   let extraArgs =
         case action of
           Ema.CLI.Run -> []
           _ -> ["--minify"]
-  timeIt . liftIO $ do
-    toText <$> readProcess tailwind (["-i", "input.css"] <> extraArgs) ""
+  liftIO (doesFileExist tailwind) >>= \case
+    True ->
+      timeIt . liftIO $ do
+        toText <$> readProcess tailwind (["-i", "input.css"] <> extraArgs) ""
+    False ->
+      error $ "Tailwind compiler not found at " <> toText tailwind
 
 timeIt :: MonadIO m => m b -> m b
 timeIt m = do
