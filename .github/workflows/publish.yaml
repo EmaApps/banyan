@@ -66,7 +66,7 @@ jobs:
           docker run \
             -e LANG=C.UTF-8 -e LC_ALL=C.UTF-8 \
             -v $PWD/content:/data/content \
-            sridca/banyan banyan gen /data/content/.ci/output
+            sridca/banyan sh -c "banyan gen /data/content/.ci/output && banyan gen /data/content/.ci/output"
           cp -r ./content/.ci .
       - name: Deploy to website to gh-pages 🚀
         uses: peaceiris/actions-gh-pages@v3

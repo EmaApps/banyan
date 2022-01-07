@@ -59,10 +59,7 @@ exe =
           (runTailwindJIT tailwindConfigPath inputCssPath $ model0 ^. Model.modelBaseDir)
           runEmanate
       Ema.CLI.Generate _ -> do
-        -- First run give .html input to tailwind
-        runEmanate
         runTailwindProduction tailwindConfigPath inputCssPath $ model0 ^. Model.modelBaseDir
-        -- Second to use the right md5 query string in tailwind css url
         runEmanate
 
 render :: Ema.CLI.Action -> Model -> SiteRoute -> Ema.Asset LByteString
