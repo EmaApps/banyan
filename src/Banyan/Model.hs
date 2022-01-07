@@ -32,7 +32,7 @@ data Model = Model
   }
   deriving (Show)
 
-emptyModel :: (MonadIO m, MonadLogger m) => FilePath -> m Model
+emptyModel :: (MonadIO m) => FilePath -> m Model
 emptyModel baseDir' = do
   rid <- randomId
   baseDir <- makeAbsolute baseDir'

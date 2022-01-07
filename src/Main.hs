@@ -9,6 +9,7 @@ import Banyan.Route
 import Banyan.Tailwind (runTailwindJIT, runTailwindProduction)
 import qualified Banyan.View as View
 import Control.Lens.Operators ((^.))
+import Control.Monad.Logger (runStdoutLoggingT)
 import qualified Data.Map.Strict as Map
 import qualified Ema
 import qualified Ema.CLI
@@ -37,30 +38,38 @@ contentDir :: FilePath
 contentDir = "content"
 
 exe :: IO ()
-exe =
-  Ema.runEma render $ \act model -> do
-    dataDir <- liftIO Paths_banyan.getDataDir
-    let defaultLayer = Loc.defaultLayer dataDir
-        layers = one defaultLayer <> Loc.userLayers (one contentDir)
-        inputCssPath = dataDir </> "input.css"
-        tailwindConfigPath = dataDir </> "tailwind.config.js"
-    model0 <- Model.emptyModel contentDir
-    let runEmanate =
-          Emanote.emanate
-            layers
-            (Patch.watching act)
-            Patch.ignoring
-            model
-            model0
-            (\a b -> Patch.patchModel a b . fmap (Loc.locResolve . head))
-    case act of
-      Ema.CLI.Run ->
-        concurrently_
-          (runTailwindJIT tailwindConfigPath inputCssPath $ model0 ^. Model.modelBaseDir)
-          runEmanate
-      Ema.CLI.Generate _ -> do
-        runTailwindProduction tailwindConfigPath inputCssPath $ model0 ^. Model.modelBaseDir
-        runEmanate
+exe = do
+  dataDir <- liftIO Paths_banyan.getDataDir
+  let defaultLayer = Loc.defaultLayer dataDir
+      layers = one defaultLayer <> Loc.userLayers (one contentDir)
+      inputCssPath = dataDir </> "input.css"
+      tailwindConfigPath = dataDir </> "tailwind.config.js"
+  model0 <- Model.emptyModel contentDir
+  let runEma = Ema.runEma render $ \act model -> do
+        let runEmanate =
+              Emanote.emanate
+                layers
+                (Patch.watching act)
+                Patch.ignoring
+                model
+                model0
+                (\a b -> Patch.patchModel a b . fmap (Loc.locResolve . head))
+        case act of
+          Ema.CLI.Run ->
+            concurrently_
+              (runTailwindJIT tailwindConfigPath inputCssPath $ model0 ^. Model.modelBaseDir)
+              runEmanate
+          Ema.CLI.Generate _ -> do
+            runTailwindProduction tailwindConfigPath inputCssPath $ model0 ^. Model.modelBaseDir
+            runEmanate
+  -- HACK: this really should be done properly. ema's generate killing main thread is bad.
+  runEma >>= \case
+    Ema.CLI.Cli (Ema.CLI.Generate _) -> do
+      -- We must generate tailwind css a second time, *after*, .html are generated in first run.
+      -- And then generate the HTML itself, to update the url hash.
+      putStrLn "ema gen: 2nd pass"
+      void runEma
+    _ -> pure ()
 
 render :: Ema.CLI.Action -> Model -> SiteRoute -> Ema.Asset LByteString
 render act model = \case
