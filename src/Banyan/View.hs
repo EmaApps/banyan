@@ -20,7 +20,7 @@ import qualified Text.Blaze.Html5.Attributes as A
 
 renderHtml :: Ema.CLI.Action -> Model -> Route -> LByteString
 renderHtml emaAction model r =
-  Tailwind.layoutWith "en" "UTF-8" mempty (renderHead model) $
+  Tailwind.layoutWith "en" "UTF-8" mempty renderHead $
     renderLayout
       model
       (H.header ! A.class_ "flex items-center justify-center border-b-4 border-green-500" $ H.a ! A.href "https://github.com/srid/banyan" $ H.img ! A.class_ "w-8" ! A.src "/banyan.svg")
@@ -57,13 +57,12 @@ renderHtml emaAction model r =
       RIndex -> Nothing
       RNode nid -> Just nid
 
-renderHead :: Model -> H.Html
-renderHead model = do
+renderHead :: H.Html
+renderHead = do
   H.title "Banyan"
   H.base ! A.href "/"
   H.link ! A.rel "shortcut icon" ! A.href "banyan.svg" ! A.type_ "image/svg"
-  let cssUrl = fromMaybe (error "style.css missing") $ modelFileUrl Tailwind.tailwindCssFilename model
-  H.link ! A.rel "stylesheet" ! A.href (H.toValue cssUrl)
+  H.link ! A.rel "stylesheet" ! A.href (H.toValue Tailwind.tailwindCssFilename)
 
 renderListing :: Ema.CLI.Action -> Model -> [G.NodeID] -> H.Html
 renderListing emaAction model nodes = do

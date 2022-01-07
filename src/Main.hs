@@ -43,6 +43,7 @@ exe =
     let defaultLayer = Loc.defaultLayer dataDir
         layers = one defaultLayer <> Loc.userLayers (one contentDir)
         inputCssPath = dataDir </> "input.css"
+        tailwindConfigPath = dataDir </> "tailwind.config.js"
     model0 <- Model.emptyModel contentDir
     let runEmanate =
           Emanote.emanate
@@ -55,10 +56,13 @@ exe =
     case act of
       Ema.CLI.Run ->
         concurrently_
-          (runTailwindJIT inputCssPath $ model0 ^. Model.modelBaseDir)
+          (runTailwindJIT tailwindConfigPath inputCssPath $ model0 ^. Model.modelBaseDir)
           runEmanate
       Ema.CLI.Generate _ -> do
-        runTailwindProduction inputCssPath $ model0 ^. Model.modelBaseDir
+        -- First run give .html input to tailwind
+        runEmanate
+        runTailwindProduction tailwindConfigPath inputCssPath $ model0 ^. Model.modelBaseDir
+        -- Second to use the right md5 query string in tailwind css url
         runEmanate
 
 render :: Ema.CLI.Action -> Model -> SiteRoute -> Ema.Asset LByteString

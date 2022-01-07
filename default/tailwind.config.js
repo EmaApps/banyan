@@ -1,5 +1,9 @@
 module.exports = {
-  content: ["./src/**/*.hs"],
+  content: [
+    "./src/**/*.hs",
+    // TODO: don't hardcode this. To be used in 'gen' stage.
+    "./content/**/*.html"
+  ],
   theme: {
     extend: {},
   },

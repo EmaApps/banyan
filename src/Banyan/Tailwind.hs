@@ -22,14 +22,14 @@ tailwind = $(staticWhich "tailwind")
 tailwindCssFilename :: String
 tailwindCssFilename = "tailwind-generated.css"
 
-runTailwindJIT :: (MonadIO m, MonadLogger m) => FilePath -> FilePath -> m ()
-runTailwindJIT input outputDir = do
-  callTailwind ["-i", input, "-o", outputDir </> tailwindCssFilename, "-w"]
+runTailwindJIT :: (MonadIO m, MonadLogger m) => FilePath -> FilePath -> FilePath -> m ()
+runTailwindJIT configFile input outputDir = do
+  callTailwind ["-c", configFile, "-i", input, "-o", outputDir </> tailwindCssFilename, "-w"]
   error "Tailwind exited unexpectedly!"
 
-runTailwindProduction :: (MonadIO m, MonadLogger m) => FilePath -> FilePath -> m ()
-runTailwindProduction input outputDir =
-  callTailwind ["-i", input, "-o", outputDir </> tailwindCssFilename, "--minify"]
+runTailwindProduction :: (MonadIO m, MonadLogger m) => FilePath -> FilePath -> FilePath -> m ()
+runTailwindProduction configFile input outputDir =
+  callTailwind ["-c", configFile, "-i", input, "-o", outputDir </> tailwindCssFilename, "--minify"]
 
 callTailwind :: (MonadIO m, MonadLogger m) => [String] -> m ()
 callTailwind args = do
