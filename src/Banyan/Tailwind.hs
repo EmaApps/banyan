@@ -1,20 +1,72 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Banyan.Tailwind
   ( runTailwindJIT,
     runTailwindProduction,
     tailwindCssFilename,
+    TailwindConfig (..),
   )
 where
 
 import Control.Monad.Logger (MonadLogger, logInfoN)
+import Data.Aeson
+import Deriving.Aeson
+import NeatInterpolation
 import System.CPUTime (getCPUTime)
 import System.Directory (doesFileExist)
 import System.FilePath ((</>))
+import System.IO (hClose, hPrint)
 import System.Which (staticWhich)
 import Text.Printf (printf)
+import qualified Text.Show
+import UnliftIO (MonadUnliftIO, finally)
+import UnliftIO.Directory (removeFile)
 import UnliftIO.Process (callProcess)
+import UnliftIO.Temporary (withSystemTempFile)
+
+-- | Haskell version of tailwind.config.js
+--
+-- Only the subset we care to define, as some fields (eg: plugins) are defined
+-- with arbitrary JS code.
+data TailwindConfig = TailwindConfig
+  { -- | List of source patterns that reference CSS classes
+    tailwindConfigContent :: [FilePath]
+  }
+  deriving (Generic)
+  deriving
+    (ToJSON)
+    via CustomJSON
+          '[ FieldLabelModifier
+               '[StripPrefix "tailwindConfig", CamelToSnake]
+           ]
+          TailwindConfig
+
+instance Text.Show.Show TailwindConfig where
+  show (decodeUtf8 . encode -> config) =
+    -- Use `Object.assign` to merge JSON (produced in Haskell) with the rest of
+    -- config (defined by raw JS; that cannot be JSON encoded)
+    toString
+      [text|
+      module.exports =
+        Object.assign(
+          JSON.parse('${config}'),
+          {
+            theme: {
+              extend: {},
+            },
+            plugins: [
+              require('@tailwindcss/typography'),
+              require('@tailwindcss/forms'),
+              require('@tailwindcss/line-clamp'),
+              require('@tailwindcss/aspect-ratio')
+            ],
+          })
+      |]
 
 tailwind :: FilePath
 tailwind = $(staticWhich "tailwind")
@@ -22,14 +74,24 @@ tailwind = $(staticWhich "tailwind")
 tailwindCssFilename :: String
 tailwindCssFilename = "tailwind-generated.css"
 
-runTailwindJIT :: (MonadIO m, MonadLogger m) => FilePath -> FilePath -> FilePath -> m ()
-runTailwindJIT configFile input outputDir = do
-  callTailwind ["-c", configFile, "-i", input, "-o", outputDir </> tailwindCssFilename, "-w"]
+runTailwindJIT :: (MonadUnliftIO m, MonadLogger m) => TailwindConfig -> FilePath -> FilePath -> m ()
+runTailwindJIT config input outputDir = do
+  withConfig config $ \configFile ->
+    callTailwind ["-c", configFile, "-i", input, "-o", outputDir </> tailwindCssFilename, "-w"]
   error "Tailwind exited unexpectedly!"
 
-runTailwindProduction :: (MonadIO m, MonadLogger m) => FilePath -> FilePath -> FilePath -> m ()
-runTailwindProduction configFile input outputDir =
-  callTailwind ["-c", configFile, "-i", input, "-o", outputDir </> tailwindCssFilename, "--minify"]
+runTailwindProduction :: (MonadUnliftIO m, MonadLogger m) => TailwindConfig -> FilePath -> FilePath -> m ()
+runTailwindProduction config input outputDir =
+  withConfig config $ \configFile ->
+    callTailwind ["-c", configFile, "-i", input, "-o", outputDir </> tailwindCssFilename, "--minify"]
+
+withConfig :: MonadUnliftIO m => TailwindConfig -> (FilePath -> m a) -> m a
+withConfig config f = do
+  withSystemTempFile "tailwind.config.js" $ \fp h -> do
+    liftIO $
+      hPrint h config >> hClose h
+    f fp
+      `finally` removeFile fp
 
 callTailwind :: (MonadIO m, MonadLogger m) => [String] -> m ()
 callTailwind args = do

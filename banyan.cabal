@@ -21,10 +21,9 @@ extra-source-files:
   README.md
 
 data-dir:           default 
-data-files:         
+data-files:
   banyan.svg
   input.css
-  tailwind.config.js
 
 executable banyan
   build-depends:
@@ -41,9 +40,10 @@ executable banyan
     , dependent-map
     , dependent-sum
     , dependent-sum-template
+    , deriving-aeson
     , directory
     , ema                     >=0.3.0.2
-    , emanote  >= 0.4.3.2
+    , emanote                 >=0.4.3.2
     , filepath
     , filepattern
     , hedgehog
@@ -70,6 +70,7 @@ executable banyan
     , tasty
     , tasty-hedgehog
     , tasty-quickcheck
+    , temporary
     , text
     , time
     , unliftio

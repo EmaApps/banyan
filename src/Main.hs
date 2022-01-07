@@ -7,6 +7,7 @@ import qualified Banyan.Model as Model
 import qualified Banyan.Model.Patch as Patch
 import Banyan.Route
 import Banyan.Tailwind (runTailwindJIT, runTailwindProduction)
+import qualified Banyan.Tailwind as Tailwind
 import qualified Banyan.View as View
 import Control.Lens.Operators ((^.))
 import qualified Data.Map.Strict as Map
@@ -42,7 +43,12 @@ exe = do
   let defaultLayer = Loc.defaultLayer dataDir
       layers = one defaultLayer <> Loc.userLayers (one contentDir)
       inputCssPath = dataDir </> "input.css"
-      tailwindConfigPath = dataDir </> "tailwind.config.js"
+      tailwindConfig =
+        Tailwind.TailwindConfig
+          [ "./src/**/*.hs",
+            -- TODO: don't hardcode
+            "./content/.ci/**/*.html"
+          ]
   model0 <- Model.emptyModel contentDir
   let runEma = Ema.runEma render $ \act model -> do
         let runEmanate =
@@ -56,10 +62,10 @@ exe = do
         case act of
           Ema.CLI.Run ->
             concurrently_
-              (runTailwindJIT tailwindConfigPath inputCssPath $ model0 ^. Model.modelBaseDir)
+              (runTailwindJIT tailwindConfig inputCssPath $ model0 ^. Model.modelBaseDir)
               runEmanate
           Ema.CLI.Generate _ -> do
-            runTailwindProduction tailwindConfigPath inputCssPath $ model0 ^. Model.modelBaseDir
+            runTailwindProduction tailwindConfig inputCssPath $ model0 ^. Model.modelBaseDir
             runEmanate
   -- HACK: this really should be done properly. ema's generate killing main thread is bad.
   runEma >>= \case
