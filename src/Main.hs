@@ -60,6 +60,7 @@ ema inputCssPath model0 = do
       -- And then generate the HTML itself, to update the url hash.
       putStrLn "ema gen: 2nd pass"
       -- FIXME: don't hardcode
+      -- not necessary, but will be - if we dynamically build css classes.
       -- void $ ema' layers (tc ["./content/.ci/*.html"]) inputCssPath model0
       pure ()
     _ -> pure ()
