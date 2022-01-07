@@ -2,7 +2,7 @@ module.exports = {
   content: [
     "./src/**/*.hs",
     // TODO: don't hardcode this. To be used in 'gen' stage.
-    "./content/**/*.html"
+    "./content/.ci/**/*.html"
   ],
   theme: {
     extend: {},
