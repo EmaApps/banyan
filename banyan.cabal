@@ -20,10 +20,11 @@ extra-source-files:
   LICENSE
   README.md
 
-data-dir:           default 
 data-files:
-  banyan.svg
-  input.css
+  default/banyan.svg
+  default/input.css
+  -- Sources are "data", because Tailwind compiler will use it to generate CSS.
+  src/**/*.hs
 
 executable banyan
   build-depends:

@@ -90,6 +90,7 @@ withConfig config f = do
   withSystemTempFile "tailwind.config.js" $ \fp h -> do
     liftIO $ do
       print fp
+      print config
       hPrint h config >> hClose h
     f fp
       `finally` removeFile fp

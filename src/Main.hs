@@ -11,6 +11,7 @@ import qualified Banyan.Tailwind as Tailwind
 import qualified Banyan.View as View
 import Control.Lens.Operators ((^.))
 import qualified Data.Map.Strict as Map
+import qualified Data.Set as Set
 import qualified Ema
 import qualified Ema.CLI
 import qualified Emanote
@@ -40,23 +41,27 @@ contentDir = "content"
 exe :: IO ()
 exe = do
   dataDir <- liftIO Paths_banyan.getDataDir
-  let defaultLayer = Loc.defaultLayer dataDir
-      layers = one defaultLayer <> Loc.userLayers (one contentDir)
-      inputCssPath = dataDir </> "input.css"
+  let defaultLayer = Loc.defaultLayer $ dataDir </> "default"
+      layers = defaultLayer :| toList (Loc.userLayers (one contentDir))
+      inputCssPath = snd defaultLayer </> "input.css"
   model0 <- Model.emptyModel contentDir
-  ema layers inputCssPath model0
+  ema inputCssPath model0
 
-ema :: Set (Loc.Loc, FilePath) -> FilePath -> Model -> IO ()
-ema layers inputCssPath model0 = do
+ema :: FilePath -> Model -> IO ()
+ema inputCssPath model0 = do
+  dataDir <- liftIO Paths_banyan.getDataDir
+  let defaultLayer = Loc.defaultLayer $ dataDir </> "default"
+      layers = one defaultLayer <> Loc.userLayers (one contentDir)
   let tc = Tailwind.TailwindConfig
   -- HACK: this really should be done properly. ema's generate killing main thread is bad.
-  ema' layers (tc ["./src/**/*.hs"]) inputCssPath model0 >>= \case
+  ema' layers (tc [dataDir </> "src/**/*.hs"]) inputCssPath model0 >>= \case
     Just (Ema.CLI.Generate _) -> do
       -- We must generate tailwind css a second time, *after*, .html are generated in first run.
       -- And then generate the HTML itself, to update the url hash.
       putStrLn "ema gen: 2nd pass"
       -- FIXME: don't hardcode
-      void $ ema' layers (tc ["./content/.ci/*.html"]) inputCssPath model0
+      -- void $ ema' layers (tc ["./content/.ci/*.html"]) inputCssPath model0
+      pure ()
     _ -> pure ()
 
 ema' :: Set (Loc.Loc, FilePath) -> Tailwind.TailwindConfig -> FilePath -> Model -> IO (Maybe Ema.CLI.Action)
