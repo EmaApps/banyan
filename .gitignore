@@ -24,4 +24,4 @@ cabal.project.local~
 result
 result-*
 
-content/style.css
+content/tailwind-generated.css

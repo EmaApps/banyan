@@ -16,6 +16,7 @@ import qualified Emanote
 import qualified Emanote.Source.Loc as Loc
 import qualified Paths_banyan
 import qualified System.Environment as Env
+import System.FilePath ((</>))
 import qualified Test.Tasty as T
 import UnliftIO.Async (concurrently_)
 
@@ -38,8 +39,10 @@ contentDir = "content"
 exe :: IO ()
 exe =
   Ema.runEma render $ \act model -> do
-    defaultLayer <- Loc.defaultLayer <$> liftIO Paths_banyan.getDataDir
-    let layers = one defaultLayer <> Loc.userLayers (one contentDir)
+    dataDir <- liftIO Paths_banyan.getDataDir
+    let defaultLayer = Loc.defaultLayer dataDir
+        layers = one defaultLayer <> Loc.userLayers (one contentDir)
+        inputCssPath = dataDir </> "input.css"
     model0 <- Model.emptyModel contentDir
     let runEmanate =
           Emanote.emanate
@@ -51,9 +54,11 @@ exe =
             (\a b -> Patch.patchModel a b . fmap (Loc.locResolve . head))
     case act of
       Ema.CLI.Run ->
-        concurrently_ runTailwindJIT runEmanate
+        concurrently_
+          (runTailwindJIT inputCssPath $ model0 ^. Model.modelBaseDir)
+          runEmanate
       Ema.CLI.Generate _ -> do
-        runTailwindProduction
+        runTailwindProduction inputCssPath $ model0 ^. Model.modelBaseDir
         runEmanate
 
 render :: Ema.CLI.Action -> Model -> SiteRoute -> Ema.Asset LByteString

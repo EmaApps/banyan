@@ -62,7 +62,6 @@ jobs:
       - name: Generate website HTML 🔧
         run: |
           mkdir -p ./content/.ci/output
-          cp input.css content
           docker load -i *docker-image-banyan.tar.gz
           docker run \
             -e LANG=C.UTF-8 -e LC_ALL=C.UTF-8 \

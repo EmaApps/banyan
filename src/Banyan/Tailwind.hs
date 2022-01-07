@@ -4,12 +4,14 @@
 module Banyan.Tailwind
   ( runTailwindJIT,
     runTailwindProduction,
+    tailwindCssFilename,
   )
 where
 
 import Control.Monad.Logger (MonadLogger, logInfoN)
 import System.CPUTime (getCPUTime)
 import System.Directory (doesFileExist)
+import System.FilePath ((</>))
 import System.Which (staticWhich)
 import Text.Printf (printf)
 import UnliftIO.Process (callProcess)
@@ -17,14 +19,17 @@ import UnliftIO.Process (callProcess)
 tailwind :: FilePath
 tailwind = $(staticWhich "tailwind")
 
-runTailwindJIT :: (MonadIO m, MonadLogger m) => m ()
-runTailwindJIT = do
-  callTailwind ["-i", "input.css", "-o", "content/style.css", "-w"]
+tailwindCssFilename :: String
+tailwindCssFilename = "tailwind-generated.css"
+
+runTailwindJIT :: (MonadIO m, MonadLogger m) => FilePath -> FilePath -> m ()
+runTailwindJIT input outputDir = do
+  callTailwind ["-i", input, "-o", outputDir </> tailwindCssFilename, "-w"]
   error "Tailwind exited unexpectedly!"
 
-runTailwindProduction :: (MonadIO m, MonadLogger m) => m ()
-runTailwindProduction =
-  callTailwind ["-i", "input.css", "-o", "content/style.css", "--minify"]
+runTailwindProduction :: (MonadIO m, MonadLogger m) => FilePath -> FilePath -> m ()
+runTailwindProduction input outputDir =
+  callTailwind ["-i", input, "-o", outputDir </> tailwindCssFilename, "--minify"]
 
 callTailwind :: (MonadIO m, MonadLogger m) => [String] -> m ()
 callTailwind args = do

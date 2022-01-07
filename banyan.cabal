@@ -21,7 +21,9 @@ extra-source-files:
   README.md
 
 data-dir:           default 
-data-files:         banyan.svg
+data-files:         
+  banyan.svg
+  input.css
 
 executable banyan
   build-depends:

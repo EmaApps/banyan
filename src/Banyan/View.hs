@@ -5,14 +5,13 @@ module Banyan.View where
 import qualified Banyan.Graph as G
 import qualified Banyan.Markdown as Markdown
 import Banyan.Model
-import Banyan.Route
+import Banyan.Route (Route (..))
+import qualified Banyan.Tailwind as Tailwind
 import qualified Banyan.VSCode as VSCode
 import Banyan.View.Common (routeElem)
 import qualified Banyan.View.Sidebar as Sidebar
 import Control.Lens.Operators ((^.))
-import Data.Digest.Pure.MD5 (md5)
 import qualified Data.Map.Strict as Map
-import qualified Ema
 import qualified Ema.CLI
 import qualified Ema.Helper.Tailwind as Tailwind
 import Text.Blaze.Html5 ((!))
@@ -63,7 +62,7 @@ renderHead model = do
   H.title "Banyan"
   H.base ! A.href "/"
   H.link ! A.rel "shortcut icon" ! A.href "banyan.svg" ! A.type_ "image/svg"
-  let cssUrl = fromMaybe (error "style.css missing") $ modelFileUrl "style.css" model
+  let cssUrl = fromMaybe (error "style.css missing") $ modelFileUrl Tailwind.tailwindCssFilename model
   H.link ! A.rel "stylesheet" ! A.href (H.toValue cssUrl)
 
 renderListing :: Ema.CLI.Action -> Model -> [G.NodeID] -> H.Html
