@@ -11,7 +11,6 @@ import Banyan.Model.Hash
 import Control.Lens.Combinators (view)
 import Control.Lens.Operators ((%~), (.~), (^.))
 import Control.Lens.TH (makeLenses)
-import Control.Monad.Logger (MonadLogger)
 import Data.Dependent.Sum (DSum)
 import qualified Data.Map.Strict as Map
 import System.FilePath ((-<.>), (</>))

@@ -31,11 +31,11 @@
         "windicss": "windicss"
       },
       "locked": {
-        "lastModified": 1641517935,
-        "narHash": "sha256-6TmAfaCc+ZDuSXMDgyrHTYrbSzDwi6hek9YweayQwfU=",
+        "lastModified": 1641589266,
+        "narHash": "sha256-Kavil/5lZq/5YbBEZUicdUAjU5v/IyUUxsJksI6Wlv8=",
         "owner": "srid",
         "repo": "emanote",
-        "rev": "e51e871455783d211bd5de69ff7d508f8087954c",
+        "rev": "d6dc8fa1864f29addb0c473f2b6222a6c48ec3c3",
         "type": "github"
       },
       "original": {
@@ -53,11 +53,11 @@
         "pre-commit-hooks": "pre-commit-hooks"
       },
       "locked": {
-        "lastModified": 1641517851,
-        "narHash": "sha256-RJy3qAF15e9njR5dEbZC/bxUhAGnquw92QGl9T72qh0=",
+        "lastModified": 1641587837,
+        "narHash": "sha256-q21egQFRZzGPgqkam5pCYgwbq/A+87oXxX5nykLFSJM=",
         "owner": "srid",
         "repo": "ema",
-        "rev": "0b536ea4d22d12ff6f98c81566d1f117f100fa47",
+        "rev": "9d3a985f9559e4eed0bdfadefe9bd8e67acaec04",
         "type": "github"
       },
       "original": {
@@ -225,17 +225,17 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1641104204,
-        "narHash": "sha256-mCjEJNKaeS/BhQQFNSxHfA0/XtujbTAAJpustt1hIxI=",
+        "lastModified": 1641521701,
+        "narHash": "sha256-IuW+4EqqKjNdJ4yO0Qr8k63OkyV1TaF5vsrZzU3GCfI=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "28d58b979250ef33f049fe1c74daa50b7515126b",
+        "rev": "d77bbfcbb650d9c219ca3286e1efb707b922d7c2",
         "type": "github"
       },
       "original": {
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "28d58b979250ef33f049fe1c74daa50b7515126b",
+        "rev": "d77bbfcbb650d9c219ca3286e1efb707b922d7c2",
         "type": "github"
       }
     },

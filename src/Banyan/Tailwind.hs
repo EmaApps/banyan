@@ -88,7 +88,8 @@ runTailwindProduction config input outputDir =
 withConfig :: MonadUnliftIO m => TailwindConfig -> (FilePath -> m a) -> m a
 withConfig config f = do
   withSystemTempFile "tailwind.config.js" $ \fp h -> do
-    liftIO $
+    liftIO $ do
+      print fp
       hPrint h config >> hClose h
     f fp
       `finally` removeFile fp

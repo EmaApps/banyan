@@ -43,38 +43,42 @@ exe = do
   let defaultLayer = Loc.defaultLayer dataDir
       layers = one defaultLayer <> Loc.userLayers (one contentDir)
       inputCssPath = dataDir </> "input.css"
-      tailwindConfig =
-        Tailwind.TailwindConfig
-          [ "./src/**/*.hs",
-            -- TODO: don't hardcode
-            "./content/.ci/**/*.html"
-          ]
   model0 <- Model.emptyModel contentDir
-  let runEma = Ema.runEma render $ \act model -> do
-        let runEmanate =
-              Emanote.emanate
-                layers
-                (Patch.watching act)
-                Patch.ignoring
-                model
-                model0
-                (\a b -> Patch.patchModel a b . fmap (Loc.locResolve . head))
-        case act of
-          Ema.CLI.Run ->
-            concurrently_
-              (runTailwindJIT tailwindConfig inputCssPath $ model0 ^. Model.modelBaseDir)
-              runEmanate
-          Ema.CLI.Generate _ -> do
-            runTailwindProduction tailwindConfig inputCssPath $ model0 ^. Model.modelBaseDir
-            runEmanate
+  ema layers inputCssPath model0
+
+ema :: Set (Loc.Loc, FilePath) -> FilePath -> Model -> IO ()
+ema layers inputCssPath model0 = do
+  let tc = Tailwind.TailwindConfig
   -- HACK: this really should be done properly. ema's generate killing main thread is bad.
-  runEma >>= \case
-    Ema.CLI.Cli (Ema.CLI.Generate _) -> do
+  ema' layers (tc ["./src/**/*.hs"]) inputCssPath model0 >>= \case
+    Just (Ema.CLI.Generate _) -> do
       -- We must generate tailwind css a second time, *after*, .html are generated in first run.
       -- And then generate the HTML itself, to update the url hash.
       putStrLn "ema gen: 2nd pass"
-      void runEma
+      -- FIXME: don't hardcode
+      void $ ema' layers (tc ["./content/.ci/*.html"]) inputCssPath model0
     _ -> pure ()
+
+ema' :: Set (Loc.Loc, FilePath) -> Tailwind.TailwindConfig -> FilePath -> Model -> IO (Maybe Ema.CLI.Action)
+ema' layers tailwindConfig inputCssPath model0 = do
+  Ema.runEma render $ \act model -> do
+    let runEmanate =
+          Emanote.emanate
+            layers
+            (Patch.watching act)
+            Patch.ignoring
+            model
+            model0
+            (\a b -> Patch.patchModel a b . fmap (Loc.locResolve . head))
+    case act of
+      Ema.CLI.Run ->
+        concurrently_
+          (runTailwindJIT tailwindConfig inputCssPath $ model0 ^. Model.modelBaseDir)
+          runEmanate
+      Ema.CLI.Generate _ -> do
+        runTailwindProduction tailwindConfig inputCssPath $ model0 ^. Model.modelBaseDir
+        runEmanate
+    pure act
 
 render :: Ema.CLI.Action -> Model -> SiteRoute -> Ema.Asset LByteString
 render act model = \case
