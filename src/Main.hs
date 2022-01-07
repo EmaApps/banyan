@@ -9,7 +9,6 @@ import Banyan.Route
 import Banyan.Tailwind (runTailwindJIT, runTailwindProduction)
 import qualified Banyan.View as View
 import Control.Lens.Operators ((^.))
-import Control.Monad.Logger (runStdoutLoggingT)
 import qualified Data.Map.Strict as Map
 import qualified Ema
 import qualified Ema.CLI
