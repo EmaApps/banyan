@@ -4,6 +4,7 @@
     banyan-emanote.url = "github:srid/emanote/master";
     nixpkgs.follows = "banyan-emanote/nixpkgs";
 
+    tailwind.url = "github:srid/tailwind-nix";
     NanoID = {
       url = "github:srid/NanoID/srid";
       flake = false;
@@ -21,9 +22,6 @@
         name = "banyan";
         overlays = [ ];
         pkgs = import nixpkgs { inherit system overlays; config.allowBroken = true; };
-        tailwindPkgs = import ./tailwind/default.nix {
-          inherit pkgs system;
-        };
         # Based on https://github.com/input-output-hk/daedalus/blob/develop/yarn2nix.nix#L58-L71
         filter = name: type:
           let
@@ -74,17 +72,7 @@
                   haskell-language-server
                   ormolu
                   pkgs.nixpkgs-fmt
-                  (
-                    let
-                      p = tailwindPkgs.package;
-                      node_modules = "${p}/lib/node_modules/banyon-tailwind/node_modules";
-                    in
-                    pkgs.writeShellScriptBin "tailwind"
-                      ''
-                        export NODE_PATH=${node_modules}
-                        exec ${node_modules}/.bin/tailwind $*
-                      ''
-                  )
+                  inputs.tailwind.defaultPackage.${system}
                 ]);
           };
       in
