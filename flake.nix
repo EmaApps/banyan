@@ -59,7 +59,7 @@
             root = pkgs.lib.cleanSourceWith { inherit filter name; src = ./.; };
             withHoogle = false;
             overrides = self: super: with pkgs.haskell.lib; {
-              ema = inputs.banyan-emanote.inputs.ema.defaultPackage.${system};
+              ema = disableCabalFlag inputs.banyan-emanote.inputs.ema.defaultPackage.${system} "with-examples";
               emanote = inputs.banyan-emanote.defaultPackage.${system};
               NanoID = self.callCabal2nix "NanoID" inputs.NanoID { };
             };

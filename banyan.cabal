@@ -42,8 +42,8 @@ executable banyan
     , dependent-sum
     , dependent-sum-template
     , directory
-    , ema                     >=0.3.0.1
-    , emanote
+    , ema                     >=0.3.0.2
+    , emanote  >= 0.4.3.2
     , filepath
     , filepattern
     , hedgehog
