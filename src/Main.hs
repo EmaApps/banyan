@@ -6,12 +6,11 @@ import Banyan.Model (Model)
 import qualified Banyan.Model as Model
 import qualified Banyan.Model.Patch as Patch
 import Banyan.Route
-import Banyan.Tailwind (runTailwindJIT, runTailwindProduction)
 import qualified Banyan.Tailwind as Tailwind
 import qualified Banyan.View as View
-import Control.Lens.Operators ((^.))
+import Control.Lens.Operators ((.~), (^.))
+import Data.Default (def)
 import qualified Data.Map.Strict as Map
-import qualified Data.Set as Set
 import qualified Ema
 import qualified Ema.CLI
 import qualified Emanote
@@ -44,7 +43,10 @@ exe = do
   dataDir <- liftIO Paths_banyan.getDataDir
   let defaultLayer = Loc.defaultLayer $ dataDir </> "default"
       layers = one defaultLayer <> Loc.userLayers (one contentDir)
-      tailwindConfig = Tailwind.TailwindConfig [dataDir </> "src/**/*.hs"]
+      tw =
+        def
+          & Tailwind.tailwindConfig . Tailwind.tailwindConfigContent .~ [dataDir </> "src/**/*.hs"]
+          & Tailwind.tailwindOutput .~ (model0 ^. Model.modelBaseDir </> View.tailwindCssFilename)
   void $
     Ema.runEma render $ \act model -> do
       let runEmanate =
@@ -58,10 +60,10 @@ exe = do
       case act of
         Ema.CLI.Run ->
           concurrently_
-            (runTailwindJIT tailwindConfig Tailwind.defaultCss $ model0 ^. Model.modelBaseDir)
+            (Tailwind.runTailwind Tailwind.JIT tw)
             runEmanate
         Ema.CLI.Generate _ -> do
-          runTailwindProduction tailwindConfig Tailwind.defaultCss $ model0 ^. Model.modelBaseDir
+          Tailwind.runTailwind Tailwind.Production tw
           runEmanate
 
 render :: Ema.CLI.Action -> Model -> SiteRoute -> Ema.Asset LByteString
