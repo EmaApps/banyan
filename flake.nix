@@ -4,7 +4,7 @@
     banyan-emanote.url = "github:srid/emanote/master";
     nixpkgs.follows = "banyan-emanote/nixpkgs";
 
-    tailwind.url = "github:srid/tailwind-nix";
+    tailwind-haskell.url = "github:srid/tailwind-haskell";
     NanoID = {
       url = "github:srid/NanoID/srid";
       flake = false;
@@ -59,6 +59,7 @@
             overrides = self: super: with pkgs.haskell.lib; {
               ema = disableCabalFlag inputs.banyan-emanote.inputs.ema.defaultPackage.${system} "with-examples";
               emanote = inputs.banyan-emanote.defaultPackage.${system};
+              tailwind = inputs.tailwind-haskell.defaultPackage.${system};
               NanoID = self.callCabal2nix "NanoID" inputs.NanoID { };
             };
             modifier = drv:
@@ -72,7 +73,7 @@
                   haskell-language-server
                   ormolu
                   pkgs.nixpkgs-fmt
-                  inputs.tailwind.defaultPackage.${system}
+                  inputs.tailwind-haskell.defaultPackage.${system}
                 ]);
           };
       in

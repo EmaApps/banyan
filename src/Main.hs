@@ -6,7 +6,6 @@ import Banyan.Model (Model)
 import qualified Banyan.Model as Model
 import qualified Banyan.Model.Patch as Patch
 import Banyan.Route
-import qualified Banyan.Tailwind as Tailwind
 import qualified Banyan.View as View
 import Control.Lens.Operators ((.~), (^.))
 import Data.Default (def)
@@ -20,6 +19,7 @@ import qualified System.Environment as Env
 import System.FilePath ((</>))
 import qualified Test.Tasty as T
 import UnliftIO.Async (concurrently_)
+import qualified Web.Tailwind as Tailwind
 
 main :: IO ()
 main = do

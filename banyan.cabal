@@ -22,9 +22,9 @@ extra-source-files:
 
 data-files:
   default/banyan.svg
-  -- Sources are "data", because Tailwind compiler will use it to generate CSS.
   src/**/*.hs
 
+-- Sources are "data", because Tailwind compiler will use it to generate CSS.
 executable banyan
   build-depends:
     , aeson
@@ -67,6 +67,7 @@ executable banyan
     , shower
     , some
     , tagged
+    , tailwind
     , tasty
     , tasty-hedgehog
     , tasty-quickcheck
@@ -75,7 +76,6 @@ executable banyan
     , time
     , unliftio
     , uuid
-    , which
 
   mixins:
     base hiding (Prelude),
@@ -108,7 +108,6 @@ executable banyan
     Banyan.Model.Hash
     Banyan.Model.Patch
     Banyan.Route
-    Banyan.Tailwind
     Banyan.View
     Banyan.View.Common
     Banyan.View.Sidebar
