@@ -41,46 +41,28 @@ contentDir = "content"
 exe :: IO ()
 exe = do
   model0 <- Model.emptyModel contentDir
-  ema model0
-
-ema :: Model -> IO ()
-ema model0 = do
   dataDir <- liftIO Paths_banyan.getDataDir
   let defaultLayer = Loc.defaultLayer $ dataDir </> "default"
       layers = one defaultLayer <> Loc.userLayers (one contentDir)
-  let tc = Tailwind.TailwindConfig
-  -- HACK: this really should be done properly. ema's generate killing main thread is bad.
-  ema' layers (tc [dataDir </> "src/**/*.hs"]) model0 >>= \case
-    Just (Ema.CLI.Generate _) -> do
-      -- We must generate tailwind css a second time, *after*, .html are generated in first run.
-      -- And then generate the HTML itself, to update the url hash.
-      putStrLn "ema gen: 2nd pass"
-      -- FIXME: don't hardcode
-      -- not necessary, but will be - if we dynamically build css classes.
-      -- void $ ema' layers (tc ["./content/.ci/*.html"]) inputCssPath model0
-      pure ()
-    _ -> pure ()
-
-ema' :: Set (Loc.Loc, FilePath) -> Tailwind.TailwindConfig -> Model -> IO (Maybe Ema.CLI.Action)
-ema' layers tailwindConfig model0 = do
-  Ema.runEma render $ \act model -> do
-    let runEmanate =
-          Emanote.emanate
-            layers
-            (Patch.watching act)
-            Patch.ignoring
-            model
-            model0
-            (\a b -> Patch.patchModel a b . fmap (Loc.locResolve . head))
-    case act of
-      Ema.CLI.Run ->
-        concurrently_
-          (runTailwindJIT tailwindConfig Tailwind.defaultCss $ model0 ^. Model.modelBaseDir)
+      tailwindConfig = Tailwind.TailwindConfig [dataDir </> "src/**/*.hs"]
+  void $
+    Ema.runEma render $ \act model -> do
+      let runEmanate =
+            Emanote.emanate
+              layers
+              (Patch.watching act)
+              Patch.ignoring
+              model
+              model0
+              (\a b -> Patch.patchModel a b . fmap (Loc.locResolve . head))
+      case act of
+        Ema.CLI.Run ->
+          concurrently_
+            (runTailwindJIT tailwindConfig Tailwind.defaultCss $ model0 ^. Model.modelBaseDir)
+            runEmanate
+        Ema.CLI.Generate _ -> do
+          runTailwindProduction tailwindConfig Tailwind.defaultCss $ model0 ^. Model.modelBaseDir
           runEmanate
-      Ema.CLI.Generate _ -> do
-        runTailwindProduction tailwindConfig Tailwind.defaultCss $ model0 ^. Model.modelBaseDir
-        runEmanate
-    pure act
 
 render :: Ema.CLI.Action -> Model -> SiteRoute -> Ema.Asset LByteString
 render act model = \case
