@@ -10,17 +10,19 @@ module Banyan.Tailwind
     runTailwindProduction,
     tailwindCssFilename,
     TailwindConfig (..),
+    defaultCss,
   )
 where
 
 import Control.Monad.Logger (MonadLogger, logInfoN)
-import Data.Aeson
+import Data.Aeson (encode)
+import Data.ByteString (hPut)
 import Deriving.Aeson
-import NeatInterpolation
+import NeatInterpolation (text)
 import System.CPUTime (getCPUTime)
 import System.Directory (doesFileExist)
 import System.FilePath ((</>))
-import System.IO (hClose, hPrint)
+import System.IO (hClose)
 import System.Which (staticWhich)
 import Text.Printf (printf)
 import qualified Text.Show
@@ -45,6 +47,17 @@ data TailwindConfig = TailwindConfig
                '[StripPrefix "tailwindConfig", CamelToSnake]
            ]
           TailwindConfig
+
+newtype Css = Css {unCss :: Text}
+
+defaultCss :: Css
+defaultCss =
+  Css
+    [text|
+    @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
+    |]
 
 instance Text.Show.Show TailwindConfig where
   show (decodeUtf8 . encode -> config) =
@@ -74,24 +87,26 @@ tailwind = $(staticWhich "tailwind")
 tailwindCssFilename :: String
 tailwindCssFilename = "tailwind-generated.css"
 
-runTailwindJIT :: (MonadUnliftIO m, MonadLogger m) => TailwindConfig -> FilePath -> FilePath -> m ()
+runTailwindJIT :: (MonadUnliftIO m, MonadLogger m) => TailwindConfig -> Css -> FilePath -> m ()
 runTailwindJIT config input outputDir = do
-  withConfig config $ \configFile ->
-    callTailwind ["-c", configFile, "-i", input, "-o", outputDir </> tailwindCssFilename, "-w"]
+  withTmpFile (show config) $ \configFile ->
+    withTmpFile (unCss input) $ \inputFile ->
+      callTailwind ["-c", configFile, "-i", inputFile, "-o", outputDir </> tailwindCssFilename, "-w"]
   error "Tailwind exited unexpectedly!"
 
-runTailwindProduction :: (MonadUnliftIO m, MonadLogger m) => TailwindConfig -> FilePath -> FilePath -> m ()
+runTailwindProduction :: (MonadUnliftIO m, MonadLogger m) => TailwindConfig -> Css -> FilePath -> m ()
 runTailwindProduction config input outputDir =
-  withConfig config $ \configFile ->
-    callTailwind ["-c", configFile, "-i", input, "-o", outputDir </> tailwindCssFilename, "--minify"]
+  withTmpFile (show config) $ \configFile ->
+    withTmpFile (unCss input) $ \inputFile ->
+      callTailwind ["-c", configFile, "-i", inputFile, "-o", outputDir </> tailwindCssFilename, "--minify"]
 
-withConfig :: MonadUnliftIO m => TailwindConfig -> (FilePath -> m a) -> m a
-withConfig config f = do
+withTmpFile :: MonadUnliftIO m => Text -> (FilePath -> m a) -> m a
+withTmpFile s f = do
   withSystemTempFile "tailwind.config.js" $ \fp h -> do
     liftIO $ do
       print fp
-      print config
-      hPrint h config >> hClose h
+      print s
+      hPut h (encodeUtf8 s) >> hClose h
     f fp
       `finally` removeFile fp
 

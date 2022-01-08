@@ -40,21 +40,17 @@ contentDir = "content"
 
 exe :: IO ()
 exe = do
-  dataDir <- liftIO Paths_banyan.getDataDir
-  let defaultLayer = Loc.defaultLayer $ dataDir </> "default"
-      layers = defaultLayer :| toList (Loc.userLayers (one contentDir))
-      inputCssPath = snd defaultLayer </> "input.css"
   model0 <- Model.emptyModel contentDir
-  ema inputCssPath model0
+  ema model0
 
-ema :: FilePath -> Model -> IO ()
-ema inputCssPath model0 = do
+ema :: Model -> IO ()
+ema model0 = do
   dataDir <- liftIO Paths_banyan.getDataDir
   let defaultLayer = Loc.defaultLayer $ dataDir </> "default"
       layers = one defaultLayer <> Loc.userLayers (one contentDir)
   let tc = Tailwind.TailwindConfig
   -- HACK: this really should be done properly. ema's generate killing main thread is bad.
-  ema' layers (tc [dataDir </> "src/**/*.hs"]) inputCssPath model0 >>= \case
+  ema' layers (tc [dataDir </> "src/**/*.hs"]) model0 >>= \case
     Just (Ema.CLI.Generate _) -> do
       -- We must generate tailwind css a second time, *after*, .html are generated in first run.
       -- And then generate the HTML itself, to update the url hash.
@@ -65,8 +61,8 @@ ema inputCssPath model0 = do
       pure ()
     _ -> pure ()
 
-ema' :: Set (Loc.Loc, FilePath) -> Tailwind.TailwindConfig -> FilePath -> Model -> IO (Maybe Ema.CLI.Action)
-ema' layers tailwindConfig inputCssPath model0 = do
+ema' :: Set (Loc.Loc, FilePath) -> Tailwind.TailwindConfig -> Model -> IO (Maybe Ema.CLI.Action)
+ema' layers tailwindConfig model0 = do
   Ema.runEma render $ \act model -> do
     let runEmanate =
           Emanote.emanate
@@ -79,10 +75,10 @@ ema' layers tailwindConfig inputCssPath model0 = do
     case act of
       Ema.CLI.Run ->
         concurrently_
-          (runTailwindJIT tailwindConfig inputCssPath $ model0 ^. Model.modelBaseDir)
+          (runTailwindJIT tailwindConfig Tailwind.defaultCss $ model0 ^. Model.modelBaseDir)
           runEmanate
       Ema.CLI.Generate _ -> do
-        runTailwindProduction tailwindConfig inputCssPath $ model0 ^. Model.modelBaseDir
+        runTailwindProduction tailwindConfig Tailwind.defaultCss $ model0 ^. Model.modelBaseDir
         runEmanate
     pure act
 

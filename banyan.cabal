@@ -22,7 +22,6 @@ extra-source-files:
 
 data-files:
   default/banyan.svg
-  default/input.css
   -- Sources are "data", because Tailwind compiler will use it to generate CSS.
   src/**/*.hs
 
