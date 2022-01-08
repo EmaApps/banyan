@@ -7,6 +7,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 -- | Tailwind runner in Haskell
+--
+-- TODO: Add `main` with CLI parser.
+-- TODO: Rename Web.Tailwind and `runtailwind` (exe).
+-- > runtailwind [-w] 'src/**/*.hs'
 module Banyan.Tailwind
   ( -- * Runner
     runTailwind,
@@ -19,6 +23,7 @@ module Banyan.Tailwind
     tailwindInput,
     tailwindOutput,
     tailwindConfigContent,
+    tailwindMode,
   )
 where
 
@@ -59,10 +64,14 @@ data TailwindConfig = TailwindConfig
 
 newtype Css = Css {unCss :: Text}
 
+data Mode = JIT | Production
+  deriving (Eq, Show)
+
 data Tailwind = Tailwind
   { _tailwindConfig :: TailwindConfig,
     _tailwindInput :: Css,
-    _tailwindOutput :: FilePath
+    _tailwindOutput :: FilePath,
+    _tailwindMode :: Mode
   }
 
 makeLenses ''TailwindConfig
@@ -79,7 +88,8 @@ instance Default Tailwind where
     Tailwind
       { _tailwindConfig = def,
         _tailwindInput = def,
-        _tailwindOutput = "output.css"
+        _tailwindOutput = "tailwind.css",
+        _tailwindMode = JIT
       }
 
 instance Default Css where
@@ -116,20 +126,17 @@ instance Text.Show.Show TailwindConfig where
 tailwind :: FilePath
 tailwind = $(staticWhich "tailwind")
 
-data Mode = JIT | Production
-  deriving (Eq, Show)
-
 modeArgs :: Mode -> [String]
 modeArgs = \case
   JIT -> ["-w"]
   Production -> ["--minify"]
 
-runTailwind :: (MonadUnliftIO m, MonadLogger m, HasCallStack) => Mode -> Tailwind -> m ()
-runTailwind mode Tailwind {..} = do
+runTailwind :: (MonadUnliftIO m, MonadLogger m, HasCallStack) => Tailwind -> m ()
+runTailwind Tailwind {..} = do
   withTmpFile (show _tailwindConfig) $ \configFile ->
     withTmpFile (unCss _tailwindInput) $ \inputFile ->
-      callTailwind $ ["-c", configFile, "-i", inputFile, "-o", _tailwindOutput] <> modeArgs mode
-  when (mode == JIT) $
+      callTailwind $ ["-c", configFile, "-i", inputFile, "-o", _tailwindOutput] <> modeArgs _tailwindMode
+  when (_tailwindMode == JIT) $
     error "Tailwind exited unexpectedly!"
 
 withTmpFile :: MonadUnliftIO m => Text -> (FilePath -> m a) -> m a

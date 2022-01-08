@@ -60,10 +60,10 @@ exe = do
       case act of
         Ema.CLI.Run ->
           concurrently_
-            (Tailwind.runTailwind Tailwind.JIT tw)
+            (Tailwind.runTailwind tw)
             runEmanate
         Ema.CLI.Generate _ -> do
-          Tailwind.runTailwind Tailwind.Production tw
+          Tailwind.runTailwind $ tw & Tailwind.tailwindMode .~ Tailwind.Production
           runEmanate
 
 render :: Ema.CLI.Action -> Model -> SiteRoute -> Ema.Asset LByteString
