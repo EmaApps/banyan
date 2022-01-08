@@ -6,12 +6,10 @@
 #       --argstr tag <image-tag>
 #   )
 let
+  lock = builtins.fromJSON (builtins.readFile ./flake.lock);
   pkgs =
     import
       (
-        let
-          lock = builtins.fromJSON (builtins.readFile ./flake.lock);
-        in
         fetchTarball {
           url = "https://github.com/NixOS/nixpkgs/archive/${lock.nodes.nixpkgs.locked.rev}.tar.gz";
           sha256 = lock.nodes.nixpkgs.locked.narHash;
@@ -19,7 +17,7 @@ let
       )
       { };
   banyan = (import ./.).defaultPackage.x86_64-linux;
-  windicss = (import ./.).windicss.x86_64-linux;
+  tailwind-haskell = (import ./.).tailwind-haskell.x86_64-linux;
 in
 { name ? "sridca/banyan"
 , tag ? "dev"
@@ -27,8 +25,7 @@ in
   inherit name tag;
   contents = [
     banyan
-    # For compiling CSS (requires nodeJS runtime and .js files; so disabled)
-    # windicss
+    tailwind-haskell
     # These are required for the GitLab CI runner
     pkgs.coreutils
     pkgs.bash_5

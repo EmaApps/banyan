@@ -73,6 +73,7 @@
                   haskell-language-server
                   ormolu
                   pkgs.nixpkgs-fmt
+                  pkgs.foreman
                   inputs.tailwind-haskell.defaultPackage.${system}
                 ]);
           };
@@ -80,6 +81,8 @@
       {
         # Used by `nix build` & `nix run`
         defaultPackage = project false;
+
+        tailwind-haskell = inputs.tailwind-haskell.defaultPackage.${system};
 
         # Used by `nix develop`
         devShell = project true;

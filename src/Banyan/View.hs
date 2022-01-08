@@ -57,7 +57,7 @@ renderHtml emaAction model r =
       RNode nid -> Just nid
 
 tailwindCssFilename :: String
-tailwindCssFilename = "tailwind-generated.css"
+tailwindCssFilename = "tailwind.css"
 
 renderHead :: Model -> H.Html
 renderHead model = do

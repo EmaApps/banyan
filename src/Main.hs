@@ -7,8 +7,7 @@ import qualified Banyan.Model as Model
 import qualified Banyan.Model.Patch as Patch
 import Banyan.Route
 import qualified Banyan.View as View
-import Control.Lens.Operators ((.~), (^.))
-import Data.Default (def)
+import Control.Lens.Operators ((^.))
 import qualified Data.Map.Strict as Map
 import qualified Ema
 import qualified Ema.CLI
@@ -18,8 +17,6 @@ import qualified Paths_banyan
 import qualified System.Environment as Env
 import System.FilePath ((</>))
 import qualified Test.Tasty as T
-import UnliftIO.Async (concurrently_)
-import qualified Web.Tailwind as Tailwind
 
 main :: IO ()
 main = do
@@ -43,28 +40,15 @@ exe = do
   dataDir <- liftIO Paths_banyan.getDataDir
   let defaultLayer = Loc.defaultLayer $ dataDir </> "default"
       layers = one defaultLayer <> Loc.userLayers (one contentDir)
-      tw =
-        def
-          & Tailwind.tailwindConfig . Tailwind.tailwindConfigContent .~ [dataDir </> "src/**/*.hs"]
-          & Tailwind.tailwindOutput .~ (model0 ^. Model.modelBaseDir </> View.tailwindCssFilename)
   void $
     Ema.runEma render $ \act model -> do
-      let runEmanate =
-            Emanote.emanate
-              layers
-              (Patch.watching act)
-              Patch.ignoring
-              model
-              model0
-              (\a b -> Patch.patchModel a b . fmap (Loc.locResolve . head))
-      case act of
-        Ema.CLI.Run ->
-          concurrently_
-            (Tailwind.runTailwind tw)
-            runEmanate
-        Ema.CLI.Generate _ -> do
-          Tailwind.runTailwind $ tw & Tailwind.tailwindMode .~ Tailwind.Production
-          runEmanate
+      Emanote.emanate
+        layers
+        (Patch.watching act)
+        Patch.ignoring
+        model
+        model0
+        (\a b -> Patch.patchModel a b . fmap (Loc.locResolve . head))
 
 render :: Ema.CLI.Action -> Model -> SiteRoute -> Ema.Asset LByteString
 render act model = \case
