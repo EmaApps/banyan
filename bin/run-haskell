@@ -2,8 +2,4 @@
 set -xe
 export PORT=7881
 
-# This will run ghcid, which uses `./.ghcid` to invoke your program main entry
-# point, with the specified args.
-#
-# If you change ./.ghcid, ghcid will automatically reload.
-exec ghcid --warnings -T :main
+exec ghcid --warnings -T Main.main --setup ":set args run --port $PORT"

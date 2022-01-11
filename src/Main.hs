@@ -9,6 +9,7 @@ import Banyan.Route
 import qualified Banyan.View as View
 import Control.Lens.Operators ((^.))
 import qualified Data.Map.Strict as Map
+import Data.Some (Some)
 import qualified Ema
 import qualified Ema.CLI
 import qualified Emanote
@@ -22,7 +23,7 @@ main :: IO ()
 main = do
   Env.getArgs >>= \case
     "test" : testArgs -> Env.withArgs testArgs $ T.defaultMain spec
-    _ -> exe
+    args -> print args >> exe
 
 spec :: T.TestTree
 spec =
@@ -40,8 +41,10 @@ exe = do
   dataDir <- liftIO Paths_banyan.getDataDir
   let defaultLayer = Loc.defaultLayer $ dataDir </> "default"
       layers = one defaultLayer <> Loc.userLayers (one contentDir)
+  cli <- Ema.CLI.cliAction
+  print cli
   void $
-    Ema.runEma render $ \act model -> do
+    Ema.runEmaWithCli cli render $ \act model -> do
       Emanote.emanate
         layers
         (Patch.watching act)
@@ -50,7 +53,7 @@ exe = do
         model0
         (\a b -> Patch.patchModel a b . fmap (Loc.locResolve . head))
 
-render :: Ema.CLI.Action -> Model -> SiteRoute -> Ema.Asset LByteString
+render :: Some Ema.CLI.Action -> Model -> SiteRoute -> Ema.Asset LByteString
 render act model = \case
   SRStatic fp ->
     -- This instructs ema to treat this route "as is" (ie. a static file; no generation)

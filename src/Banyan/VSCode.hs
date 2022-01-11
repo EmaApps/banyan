@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeApplications #-}
 
@@ -11,6 +12,7 @@ where
 
 import Banyan.ID
 import Control.Exception.Safe (MonadThrow)
+import Data.Some (Some)
 import qualified Ema.CLI
 import NeatInterpolation (text)
 import Text.Blaze.Html5 ((!))
@@ -74,8 +76,8 @@ mkUri (VSCodeAction baseDir action) = case action of
             [baseDirParam (toText baseDir)]
       }
 
-renderVSCodeAction :: Ema.CLI.Action -> VSCodeAction -> H.Html
-renderVSCodeAction Ema.CLI.Run action = do
+renderVSCodeAction :: Some Ema.CLI.Action -> VSCodeAction -> H.Html
+renderVSCodeAction (Ema.CLI.isLiveServer -> True) action = do
   let uri = mkUri action
   H.a
     ! A.class_ ""

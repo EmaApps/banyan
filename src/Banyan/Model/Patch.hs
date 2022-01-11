@@ -1,3 +1,5 @@
+{-# LANGUAGE GADTs #-}
+
 module Banyan.Model.Patch where
 
 import Banyan.ID (parseIDFileName)
@@ -13,7 +15,7 @@ import System.FilePattern (FilePattern)
 data FileType = FTMd | FTStatic (Some HashMode)
   deriving (Eq, Show, Ord)
 
-watching :: Ema.CLI.Action -> [(FileType, FilePattern)]
+watching :: Some Ema.CLI.Action -> [(FileType, FilePattern)]
 watching emaAction =
   [ (FTMd, "*.md"),
     (FTStatic hashMode, "*")
@@ -22,7 +24,7 @@ watching emaAction =
     hashMode = case emaAction of
       -- Race condition cum browser caching can make content hashed URLs
       -- incorrect in live-server mode. So we use an unique ID to be safe.
-      Ema.CLI.Run -> Some HashUUID
+      Some (Ema.CLI.Run _) -> Some HashUUID
       -- To invalidate browser cache when accessing the newly generated site.
       _ -> Some HashContents
 

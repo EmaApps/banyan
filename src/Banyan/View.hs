@@ -11,13 +11,14 @@ import Banyan.View.Common (routeElem)
 import qualified Banyan.View.Sidebar as Sidebar
 import Control.Lens.Operators ((^.))
 import qualified Data.Map.Strict as Map
+import Data.Some (Some)
 import qualified Ema.CLI
 import qualified Ema.Helper.Tailwind as Tailwind
 import Text.Blaze.Html5 ((!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 
-renderHtml :: Ema.CLI.Action -> Model -> Route -> LByteString
+renderHtml :: Some Ema.CLI.Action -> Model -> Route -> LByteString
 renderHtml emaAction model r =
   Tailwind.layoutWith "en" "UTF-8" mempty (renderHead model) $
     renderLayout
@@ -67,7 +68,7 @@ renderHead model = do
   let cssUrl = fromMaybe (error "style.css missing") $ modelFileUrl tailwindCssFilename model
   H.link ! A.rel "stylesheet" ! A.href (H.toValue cssUrl)
 
-renderListing :: Ema.CLI.Action -> Model -> [G.NodeID] -> H.Html
+renderListing :: Some Ema.CLI.Action -> Model -> [G.NodeID] -> H.Html
 renderListing emaAction model nodes = do
   forM_ nodes $ \node ->
     H.div ! A.class_ "rounded shadow p-2 my-2 bg-white max-w-prose" $ do

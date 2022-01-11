@@ -28,6 +28,7 @@ data-files:
 executable banyan
   build-depends:
     , aeson
+    , optparse-applicative
     , algebraic-graphs
     , async
     , base
