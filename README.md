@@ -11,6 +11,10 @@ Banyan has no social element, for which you should still use WOC. Once ready I p
 
 Think of it as a more structured Zettelkasten with the notion of 'time streams' for each node, and [other notions yet to be devised][othermod].
 
+## Use it
+
+https://github.com/srid/banyan-template
+
 ## Developing
 
 ```

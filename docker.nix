@@ -17,7 +17,6 @@ let
       )
       { };
   banyan = (import ./.).defaultPackage.x86_64-linux;
-  tailwind-haskell = (import ./.).tailwind-haskell.x86_64-linux;
 in
 { name ? "sridca/banyan"
 , tag ? "dev"
@@ -25,7 +24,6 @@ in
   inherit name tag;
   contents = [
     banyan
-    tailwind-haskell
     # These are required for the GitLab CI runner
     pkgs.coreutils
     pkgs.bash_5
