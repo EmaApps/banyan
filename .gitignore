@@ -23,5 +23,3 @@ cabal.project.local~
 .ghc.environment.*
 result
 result-*
-
-content/tailwind.css

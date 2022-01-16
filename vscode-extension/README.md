@@ -2,7 +2,7 @@
 
 Demo: `open 'vscode://srid.banyan/new/blah?parent=foobar'`
 
-Create package with `npx vsce package`, and install it by right clicking the .vsix file in VSCode.
+Create package with `npx vsce package`, and install it by right clicking the .vsix file in VSCode. (TODO: nixify deps)
 
 ## Features
 
