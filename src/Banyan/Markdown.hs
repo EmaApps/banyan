@@ -64,7 +64,7 @@ parseMarkdown fp = do
 -- rendering.
 renderPandoc :: Pandoc -> H.Html
 renderPandoc doc =
-  H.div ! A.class_ "prose" $ do
+  H.div ! A.class_ "prose prose-headings:my-1 prose-h1:text-center prose-h1:bg-gray-50 prose-h1:mt-0 pb-1" $ do
     H.unsafeByteString . either (error . show) encodeUtf8 $
       runPure $ writeHtml5String writerSettings doc
   where

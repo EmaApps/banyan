@@ -71,7 +71,7 @@ renderHead model = do
 renderListing :: Some Ema.CLI.Action -> Model -> [G.NodeID] -> H.Html
 renderListing emaAction model nodes = do
   forM_ nodes $ \node ->
-    H.div ! A.class_ "rounded shadow p-2 my-2 bg-white max-w-prose" $ do
+    H.div ! A.class_ "rounded shadow p-2 my-3 bg-white max-w-prose" $ do
       case modelLookup node model of
         Nothing -> do
           "missing!"
