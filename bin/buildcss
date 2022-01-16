@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-set -xe
-
-exec tailwind -i input.css -c tailwind.config.js -o ./default/style.css $*

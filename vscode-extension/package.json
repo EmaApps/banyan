@@ -51,6 +51,6 @@
   "dependencies": {
     "dedent-js": "^1.0.1",
     "fp-ts": "^2.11.5",
-    "vsce": "^2.6.0"
+    "vsce": "^2.6.3"
   }
 }
