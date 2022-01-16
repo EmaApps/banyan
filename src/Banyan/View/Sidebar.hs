@@ -16,7 +16,7 @@ import qualified Text.Blaze.Html5.Attributes as A
 renderSidebar :: Model -> Route -> H.Html
 renderSidebar model hereR = do
   let forest = G.toTree $ model ^. modelGraph
-  H.div ! A.class_ "border-r-2 md:h-full pr-4 mr-4" $ do
+  H.div ! A.class_ "border-r-2 md:h-full  pr-4 mr-4" $ do
     routeElemUnlessHere model hereR (SRHtml RIndex) "Index"
     H.div ! A.class_ "" $ do
       forM_ forest $ \node ->
