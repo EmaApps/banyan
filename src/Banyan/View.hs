@@ -65,7 +65,7 @@ renderHead model = do
   H.title "Banyan"
   H.base ! A.href "/"
   H.link ! A.rel "shortcut icon" ! A.href "banyan.svg" ! A.type_ "image/svg"
-  let cssUrl = fromMaybe (error "style.css missing") $ modelFileUrl tailwindCssFilename model
+  let cssUrl = fromMaybe (error $ toText tailwindCssFilename <> " missing") $ modelFileUrl tailwindCssFilename model
   H.link ! A.rel "stylesheet" ! A.href (H.toValue cssUrl)
 
 renderListing :: Some Ema.CLI.Action -> Model -> [G.NodeID] -> H.Html

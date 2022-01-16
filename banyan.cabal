@@ -22,7 +22,7 @@ extra-source-files:
 
 data-files:
   default/banyan.svg
-  src/**/*.hs
+  default/*.css
 
 -- Sources are "data", because Tailwind compiler will use it to generate CSS.
 executable banyan
