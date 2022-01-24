@@ -13,14 +13,14 @@ import Control.Lens.Operators ((^.))
 import qualified Data.Map.Strict as Map
 import Data.Some (Some)
 import qualified Ema.CLI
-import qualified Ema.Helper.Tailwind as Tailwind
+import qualified Ema.Helper.Blaze as Blaze
 import Text.Blaze.Html5 ((!))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 
 renderHtml :: Some Ema.CLI.Action -> Model -> Route -> LByteString
 renderHtml emaAction model r =
-  Tailwind.layoutWith "en" "UTF-8" mempty (renderHead model) $
+  Blaze.layoutWith "en" "UTF-8" (renderHead model) $
     renderLayout
       model
       (H.header ! A.class_ "flex items-center justify-center border-b-4 border-green-500" $ H.a ! A.href "https://github.com/srid/banyan" $ H.img ! A.class_ "w-8" ! A.src "/banyan.svg")

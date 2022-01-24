@@ -2,6 +2,12 @@
 
 WIP: Tree of time. 
 
+---
+*Warning*: Banyan is more of an experiment, and is not meant for general use (at least not right now).
+
+---
+
+
 Like [wind of change](https://windofchange.me) (WOC), but using the tree model (and as a static site).
 
 Banyan has no social element, for which you should still use WOC. Once ready I probably will begin using banyan primarily, and then cross-post[^api] its content to WOC for enabling discussions[^woc]
